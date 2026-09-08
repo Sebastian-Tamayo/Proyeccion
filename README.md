@@ -1,8 +1,10 @@
 # Proyección — Ecosistema de 3 Agentes
 
-Pipeline personal para conectar el día a día técnico (EmpresaDemo + Lemoncode) con tres agentes Claude en Python: L3, DevOps y Negocio/Big Data/IA.
+Monorepo personal: orquestador de IA (Python + Claude) + laboratorios y casos L3/DevOps/Negocio.
 
-## Arquitectura
+**Objetivo:** documentar la transición de soporte L3 → DevOps/Cloud → visión de negocio (Big Data/IA), con artefactos reutilizables y memoria operativa.
+
+## Arquitectura del orquestador
 
 ```
 Gemini (libreta diaria)
@@ -18,79 +20,117 @@ inbox/resumen_diario.md
    ┌────┼────────────┐
    ▼    ▼            ▼
  Agente 1        Agente 2        Agente 3
- Arquitecto L3   DevOps          Ops / Big Data / IA
- (Claude API)    (Claude API)    (Claude API)
+ L3              DevOps          Negocio / Big Data / IA
+ (Claude)        (Claude)        (Claude)
+        │
+        ▼
+output/ultima_ejecucion.md
 ```
 
 | Pieza | Rol |
 |--------|-----|
-| **Gemini** | Libreta diaria. Genera el resumen del día (fuera de este repo). |
-| **`inbox/resumen_diario.md`** | Punto oficial donde pegas ese resumen. |
-| **`memoria.md`** | Historial a largo plazo (evolución, objetivos). |
-| **`main.py`** | Orquesta las 3 llamadas en paralelo y muestra las respuestas. |
-| **Agentes 1–3** | System prompts XML; modelo Claude vía Anthropic API. |
+| **Gemini** | Libreta diaria (fuera del repo). |
+| **`inbox/`** | Entrada del día: pega aquí el resumen. |
+| **`memoria.md`** | Historial a largo plazo (anonimizado). |
+| **`main.py`** | Orquesta las 3 llamadas en paralelo. |
+| **`agents/`** | System prompts XML + clientes Anthropic. |
+| **`scripts/`** | Casos reales / laboratorios (artefactos). |
+| **`output/`** | Última respuesta de los agentes. |
+| **`docs/`** | Guías cortas de flujo. |
 
-## Requisitos
-
-- Python 3.10+
-- Cuenta Anthropic con API key (créditos Claude)
+## Configuración local
 
 ```bash
 pip install -r requirements.txt
+cp .env.example .env   # o crea .env a mano
 ```
-
-Crea un archivo `.env` en la raíz (no se sube a Git):
 
 ```env
 ANTHROPIC_API_KEY=tu_clave_aqui
 ```
 
-## Uso diario
+> `.env` **nunca** se sube a Git.
 
-1. Trabaja el día en **Gemini** y pide un resumen estructurado.
-2. Pégalo en [`inbox/resumen_diario.md`](inbox/resumen_diario.md) (sustituye la plantilla).
-3. Ejecuta:
+## Flujo de trabajo diario
 
-```bash
-python main.py
-```
+1. Resume el día en Gemini.
+2. Pega el texto en [`inbox/resumen_diario.md`](inbox/resumen_diario.md).
+3. Ejecuta: `python main.py`
+4. Revisa `output/ultima_ejecucion.md` y consolida en `memoria.md` si aporta.
 
-Si el inbox está vacío o solo tiene la plantilla, `main.py` sale con error y no consume créditos.
-
-Más detalle del flujo: [`FLUJO.md`](FLUJO.md).
+Detalle: [`docs/FLUJO.md`](docs/FLUJO.md).
 
 ## Agentes
 
-| Archivo | Foco |
-|---------|------|
-| `agente_1_l3.py` | Incidencias reales EmpresaDemo, infra corporativa, scripts PowerShell/Bash Clean Code frente a EDR legítimo. |
-| `agente_2_devops.py` | Bootcamp Lemoncode, Cloud e IaC (Docker, Kubernetes, Terraform, Azure, AWS). |
-| `agente_3_biz.py` | Observabilidad, Big Data, IA y valor de negocio / proyección estratégica. |
+| Módulo | Foco |
+|--------|------|
+| [`agents/agente_1_l3.py`](agents/agente_1_l3.py) | Infra L3, scripts Clean Code / EDR-safe |
+| [`agents/agente_2_devops.py`](agents/agente_2_devops.py) | Lemoncode, Cloud, IaC |
+| [`agents/agente_3_biz.py`](agents/agente_3_biz.py) | ROI, KPIs, narrativa de negocio |
 
-Cada agente recibe el mismo contexto enriquecido: memoria histórica + resumen del día.
+## Casos y laboratorios (`scripts/`)
 
-## Estructura del repo
+Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar soluciones pasadas sin salir del proyecto.
+
+| Caso | Descripción |
+|------|-------------|
+| [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
+
+Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
+
+```powershell
+# Producción: pasar dominio real (en repo hay placeholders)
+.\Deploy-SAP740.ps1 -DomainName "corp.ejemplo.local" -DomainProbeHost "SRV-DC-01.corp.ejemplo.local"
+```
+
+## Impacto y resultados (portfolio)
+
+| Resultado | Valor |
+|-----------|--------|
+| Pipeline Gemini → 3 agentes Claude | Menos fricción para documentar incidencias y proyectar aprendizaje |
+| Playbook MFA: desasignar en consola ≠ borrar usuario AD | Evita cascadas de SID/buzón/compliance |
+| `Deploy-SAP740.ps1` EDR-safe | Sin PInvoke/kernel32 ni `cmd` ofuscado; menos falsos positivos SOC |
+| Ejecución desde lápiz USB | Menor lead time de provisión (sin pegar a `C:\Deploy`) |
+| Memoria y docs anonimizados | Repo publicable sin filtrar datos personales/corporativos |
+
+*Cifras de ROI en `memoria.md` son estimaciones de escenario de laboratorio (datos ficticios).*
+
+## Estructura del repositorio
 
 ```
 Proyeccion/
 ├── main.py
-├── agente_1_l3.py
-├── agente_2_devops.py
-├── agente_3_biz.py
-├── memoria.md
-├── FLUJO.md
+├── agents/
+│   ├── agente_1_l3.py
+│   ├── agente_2_devops.py
+│   └── agente_3_biz.py
 ├── inbox/
 │   └── resumen_diario.md
+├── output/
+│   └── ultima_ejecucion.md
+├── scripts/
+│   └── SAP_740/
+├── docs/
+│   └── FLUJO.md
+├── memoria.md
 ├── requirements.txt
+├── .env.example
 ├── .gitignore
 └── README.md
 ```
 
+## Por qué monorepo
+
+- Un solo sitio para orquestador + scripts + memoria.
+- Historial de “casos resueltos” enlazado al README.
+- Repos separados solo cuando un artefacto merezca ciclo de vida/CI propio.
+
 ## Seguridad
 
-- **Nunca** subas `.env` ni claves API.
-- Los scripts del Agente 1 deben ser legítimos y compatibles con políticas EDR corporativas.
+- No subir `.env`, secretos ni datos personales reales.
+- Dominios/hosts en ejemplos son placeholders (`ejemplo.local`).
+- Scripts L3: solo automatización legítima y compatible con EDR.
 
 ## Licencia
 
-Uso personal / educativo (Alex Rivera Tamayo — proyección L3 → DevOps → visión de negocio).
+Uso personal / educativo — proyección L3 → DevOps → visión de negocio.
