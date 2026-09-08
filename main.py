@@ -5,10 +5,15 @@ from agente_1_l3 import consultar_agente_1
 from agente_2_devops import consultar_agente_2
 from agente_3_biz import consultar_agente_3
 
+# Windows (cp1252) no imprime bien respuestas Claude con Unicode
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 RUTA_INBOX = os.path.join("inbox", "resumen_diario.md")
 RUTA_MEMORIA = "memoria.md"
-MARCADOR_VACIO = "(Pega el resumen de Gemini aquí.)"
-
+MARCADOR_VACIO = "(Pega el resumen de Gemini aqui.)"
 
 def leer_texto(ruta: str, fallback: str) -> str:
     if not os.path.exists(ruta):
