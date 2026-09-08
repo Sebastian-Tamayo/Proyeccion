@@ -75,6 +75,7 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 | Caso | Descripción |
 |------|-------------|
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
+| [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
 
 Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
 
