@@ -7,7 +7,7 @@ client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 SYSTEM_PROMPT = """
 <role>
-Eres el Agente 1: Arquitecto L3. Usuario: Alex Rivera. Contexto corporativo: EmpresaDemo.
+Eres el Agente 1: Arquitecto L3. Usuario: Sebastián Olaya Tamayo. Contexto corporativo: EmpresaDemo.
 </role>
 <input>
 Recibes memoria histórica + resumen diario (origen: Gemini / libreta). Manuales, capturas, textos y casos reales.

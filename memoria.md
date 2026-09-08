@@ -1,4 +1,4 @@
-# Historial y Proyeccion de Alex Rivera
+# Historial y Proyeccion de Sebastián Olaya Tamayo
 * Estado actual: Ecosistema de 3 agentes operativo (L3, DevOps, Negocio).
 * Objetivo general: Transicion de soporte L3 a DevOps, Cloud y vision estrategica de Negocio (Big Data/IA) aplicado a EmpresaDemo.
 * Temas consolidados: Desvinculacion eTokens MFA (ClienteEnergia) sin Sysprep; token ligado a identidad AD, no a hardware.
@@ -377,7 +377,7 @@ RESPUESTA AGENTE 2 (DevOps - Lemoncode)
 
 ======================================================================
 
-# 🎯 ANÁLISIS INTEGRAL: Desvinculación de Tokens MFA → Cloud IAM (Alex Rivera)
+# 🎯 ANÁLISIS INTEGRAL: Desvinculación de Tokens MFA → Cloud IAM (Sebastián Olaya Tamayo)
 
 
 
@@ -1425,7 +1425,7 @@ class IAMManager:
 
 ---
 
-## 🎯 SÍNTESIS EJECUTIVA PARA ALEX RIVERA
+## 🎯 SÍNTESIS EJECUTIVA PARA SEBASTIÁN OLAYA TAMAYO
 
 La hipótesis de eliminar usuarios en Active Directory para liberar tokens MFA es **operativamente destructiva y financieramente riesgosa**. Traducido a impacto de negocio:
 
@@ -1553,7 +1553,7 @@ Escenario Propuesto (Protocolo Claro + Automatización):
 ## Agente 1 (L3)
 
 # 🏗️ DIAGNÓSTICO L3 + ACCIÓN INMEDIATA
-## Agente 1: Arquitecto — Alex Rivera @ EmpresaDemo
+## Agente 1: Arquitecto — Sebastián Olaya Tamayo @ EmpresaDemo
 
 ---
 
@@ -1705,7 +1705,7 @@ if ($findings["Critical"].Count -gt 0) {
 
 # 🚀 AGENTE 2: INGENIERO DEVOPS — SESIÓN DE TRANSFORMACIÓN L3 → IaC
 
-**Usuario:** Alex Rivera | **Bootcamp:** Lemoncode | **Proyecto:** ClienteIndustrial + ClienteEnergia
+**Usuario:** Sebastián Olaya Tamayo | **Bootcamp:** Lemoncode | **Proyecto:** ClienteIndustrial + ClienteEnergia
 
 ---
 

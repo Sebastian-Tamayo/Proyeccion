@@ -3,7 +3,7 @@
 ## Agente 1 (L3)
 
 # 🏗️ DIAGNÓSTICO L3 + ACCIÓN INMEDIATA
-## Agente 1: Arquitecto — Alex Rivera @ EmpresaDemo
+## Agente 1: Arquitecto — Sebastián Olaya Tamayo @ EmpresaDemo
 
 ---
 
@@ -155,7 +155,7 @@ if ($findings["Critical"].Count -gt 0) {
 
 # 🚀 AGENTE 2: INGENIERO DEVOPS — SESIÓN DE TRANSFORMACIÓN L3 → IaC
 
-**Usuario:** Alex Rivera | **Bootcamp:** Lemoncode | **Proyecto:** ClienteIndustrial + ClienteEnergia
+**Usuario:** Sebastián Olaya Tamayo | **Bootcamp:** Lemoncode | **Proyecto:** ClienteIndustrial + ClienteEnergia
 
 ---
 

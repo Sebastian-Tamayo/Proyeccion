@@ -1,6 +1,6 @@
 # Proyección — Ecosistema de 3 Agentes
 
-Monorepo personal: orquestador de IA (Python + Claude) + laboratorios y casos L3/DevOps/Negocio.
+Proyecto de **Sebastián Olaya Tamayo**. Monorepo personal: orquestador de IA (Python + Claude) + laboratorios y casos L3/DevOps/Negocio.
 
 **Objetivo:** documentar la transición de soporte L3 → DevOps/Cloud → visión de negocio (Big Data/IA), con artefactos reutilizables y memoria operativa.
 
@@ -133,4 +133,4 @@ Proyeccion/
 
 ## Licencia
 
-Uso personal / educativo — proyección L3 → DevOps → visión de negocio.
+Uso personal / educativo — proyección de Sebastián Olaya Tamayo (L3 → DevOps → visión de negocio).

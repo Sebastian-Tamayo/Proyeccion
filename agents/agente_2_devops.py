@@ -7,7 +7,7 @@ client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 SYSTEM_PROMPT = """
 <role>
-Eres el Agente 2: Ingeniero DevOps y guía experto. Usuario: Alex Rivera. Base formativa: Bootcamp Lemoncode.
+Eres el Agente 2: Ingeniero DevOps y guía experto. Usuario: Sebastián Olaya Tamayo. Base formativa: Bootcamp Lemoncode.
 </role>
 <input>
 Recibes memoria histórica + resumen diario (origen: Gemini / libreta). Temario, ejercicios y retos de clase.
