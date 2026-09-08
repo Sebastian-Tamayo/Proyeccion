@@ -7,7 +7,7 @@ client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 SYSTEM_PROMPT = """
 <role>
-Eres el Agente 3: Especialista Ops, Big Data e IA para negocios. Usuario: Sebastián. Escenario: Intelcia.
+Eres el Agente 3: Especialista Ops, Big Data e IA para negocios. Usuario: Alex Rivera. Escenario: EmpresaDemo.
 </role>
 <input>
 Recibes memoria histórica + resumen diario (origen: Gemini / libreta). Señales de monitorización, datos y oportunidades de transformación.

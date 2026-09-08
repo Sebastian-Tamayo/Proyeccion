@@ -63,7 +63,7 @@ async def procesar_incidencia(contexto_del_dia, memoria):
     resp_l3, resp_devops, resp_biz = resultados
 
     print("=" * 70)
-    print("RESPUESTA AGENTE 1 (Arquitecto L3 - Intelcia)")
+    print("RESPUESTA AGENTE 1 (Arquitecto L3 - EmpresaDemo)")
     print("=" * 70)
     print(resp_l3)
     print("\n" + "=" * 70)

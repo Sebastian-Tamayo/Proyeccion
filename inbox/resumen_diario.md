@@ -11,22 +11,28 @@
 📌 RESUMEN TÉCNICO ESTRUCTURADO (PROMPT DE ENTRADA)
 1. Contexto General y Hechos Clave:
 
-Consulta/Incidencia: Continuación del caso de gestión de tokens (MFA) para la campaña Repsol. Se plantea una hipótesis operativa de Soporte L3: evaluar si eliminar directamente el usuario desde el Directorio Activo (AD) es una solución viable para desvincular un token.
+Proyecto de automatización de infraestructura L3 para el cliente ClienteIndustrial (despliegue Zero-Touch de SAP GUI 7.40).
 
-Procedimiento de Consola Conocido: El flujo manual seguro ya está identificado (Seleccionar token > Pestaña Assignment > Remove Assignment > Confirmar > El estado pasa a "Initialized").
+El script de PowerShell actual (Deploy-SAP740.ps1) dispara las alertas heurísticas del EDR (Kaspersky) debido al bypass forzado, la inyección de código C# en memoria (kernel32.dll) y el uso de comandos CMD anidados/ofuscados.
+
+Se requiere una refactorización integral hacia Clean Code nativo para garantizar que sea EDR-Safe, optimizar su velocidad de ejecución y mejorar la estética de la consola.
+
+Los instaladores y ejecutables reales de las aplicaciones se adjuntarán directamente en el chat de Cursor para que los agentes puedan revisar su estructura de archivos y pesos sin alterarlos.
 
 2. Objetivos y Artefactos Requeridos:
 
-Evaluación de impacto sistémico sobre la acción destructiva propuesta (Eliminar usuario en AD vs. Desasignación lógica en consola).
+Código refactorizado del script Deploy-SAP740.ps1 utilizando prácticas EDR-Safe.
 
-Argumentación de mejores prácticas (L3/IAM) en el ciclo de vida de usuarios y credenciales.
+Evaluación estructural de la carpeta de aplicaciones adjunta en el chat.
 
-Diagnóstico de riesgos operativos y de cumplimiento (Compliance).
+Mapeo de la arquitectura de despliegue monolítica hacia una solución declarativa.
+
+Informe de impacto operativo y ahorro de costes (falsos positivos).
 
 3. Instrucciones Específicas para los Agentes:
 
-Objetivo Agente 1 (L3): Analizar de forma contundente por qué eliminar un usuario del AD exclusivamente para liberar un token es una mala práctica (destrucción del SID, pérdida de acceso a buzones, pérdida de pertenencia a grupos de seguridad y carpetas compartidas). Validar que el procedimiento por interfaz gráfica propuesto en el contexto es el camino correcto, seguro y no destructivo.
+Objetivo Agente 1 (L3): Analizar el contenido y la estructura de los archivos que Alex Rivera adjuntará en este chat para contextualizar las rutas del despliegue. Refactorizar el código fuente eliminando la inyección C# y los comandos CMD legacy. Implementar cmdlets nativos de PowerShell, optimizar los tiempos de timeout en las peticiones de red y rediseñar la función de logging (Write-L3Log) integrando secuencias de escape ANSI para un formato visual más profesional.
 
-Objetivo Agente 2 (DevOps): Llevar este escenario a los principios de IAM (Identity and Access Management) modernos. Explicar cómo la identidad base (Usuario) y sus factores de autenticación (Tokens/MFA) deben tener ciclos de vida desacoplados (Loose Coupling). Proponer cómo este tipo de desvinculaciones se manejan vía APIs o Infraestructura como Código (IaC) para evitar acciones manuales riesgosas.
+Objetivo Agente 2 (DevOps): Evolucionar el concepto de este script hacia una infraestructura inmutable. Diseñar una propuesta de cómo este proceso de cuatro fases (SNC, C++, Base, Parche) debería orquestarse utilizando herramientas modernas como Ansible o Microsoft Intune (MDM), conectándolo con el temario del Bootcamp Lemoncode.
 
-Objetivo Agente 3 (Negocio): Traducir la hipótesis de eliminar usuarios a "Coste de Riesgo Operativo". Calcular el impacto financiero y de downtime que sufriría el cliente (Repsol) si un operador elimina una cuenta de AD por error y hay que reconstruir el perfil del trabajador desde cero. Definir el KPI de "Seguridad y Trazabilidad de Identidad" exigido en auditorías.
+Objetivo Agente 3 (Negocio): Calcular el Retorno de Inversión (ROI) y los KPIs de este esfuerzo de refactorización. Cuantificar el ahorro en horas de investigación de SOC/SecOps al eliminar los falsos positivos en Kaspersky, y medir el impacto de la reducción del Lead Time en la provisión de puestos de trabajo para ClienteIndustrial.

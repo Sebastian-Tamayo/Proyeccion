@@ -1,6 +1,6 @@
 # Proyección — Ecosistema de 3 Agentes
 
-Pipeline personal para conectar el día a día técnico (Intelcia + Lemoncode) con tres agentes Claude en Python: L3, DevOps y Negocio/Big Data/IA.
+Pipeline personal para conectar el día a día técnico (EmpresaDemo + Lemoncode) con tres agentes Claude en Python: L3, DevOps y Negocio/Big Data/IA.
 
 ## Arquitectura
 
@@ -63,7 +63,7 @@ Más detalle del flujo: [`FLUJO.md`](FLUJO.md).
 
 | Archivo | Foco |
 |---------|------|
-| `agente_1_l3.py` | Incidencias reales Intelcia, infra corporativa, scripts PowerShell/Bash Clean Code frente a EDR legítimo. |
+| `agente_1_l3.py` | Incidencias reales EmpresaDemo, infra corporativa, scripts PowerShell/Bash Clean Code frente a EDR legítimo. |
 | `agente_2_devops.py` | Bootcamp Lemoncode, Cloud e IaC (Docker, Kubernetes, Terraform, Azure, AWS). |
 | `agente_3_biz.py` | Observabilidad, Big Data, IA y valor de negocio / proyección estratégica. |
 
@@ -93,4 +93,4 @@ Proyeccion/
 
 ## Licencia
 
-Uso personal / educativo (Sebastián Tamayo — proyección L3 → DevOps → visión de negocio).
+Uso personal / educativo (Alex Rivera Tamayo — proyección L3 → DevOps → visión de negocio).
