@@ -1,0 +1,19 @@
+---
+description: Al aprobar una respuesta, anexarla automaticamente a memoria.md
+alwaysApply: true
+---
+
+# Memoria automatica al aprobar
+
+Cuando Sebastián Olaya Tamayo indique que una respuesta/resultado **está bien** (o equivalentes: "esta bien", "está bien", "perfecto", "añade a memoria", "guarda en memoria", "ok memoria", "correcto, a memoria"), haz **inmediatamente** lo siguiente sin preguntar:
+
+1. Anexa a [`memoria.md`](memoria.md) una nueva seccion al final con:
+   - Fecha (`YYYY-MM-DD`)
+   - Titulo corto del caso (SAP, Iber, MFA, etc.)
+   - El resultado aprobado (salida de agentes, script final, conclusion tecnica)
+2. Si existe [`output/ultima_ejecucion.md`](output/ultima_ejecucion.md) y es la fuente del resultado, usa ese contenido (o el entregable de la sesion).
+3. Antes de escribir: **anonimiza** datos sensibles (dominios reales, hosts, emails corporativos, clientes reales) salvo el nombre del autor **Sebastián Olaya Tamayo**.
+4. Corrige encoding (nada de `ÔöÇ` / `Campa├▒a`); UTF-8 limpio y acentos correctos.
+5. Confirma en una frase: que se anadio a `memoria.md` (y haz commit/push **solo** si el usuario lo pide).
+
+No esperes un segundo mensaje. La frase de aprobacion **es** la orden de actualizar memoria.
