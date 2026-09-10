@@ -79,7 +79,7 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 |------|-------------|
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
 | [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
-| [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Grok + Gmail: limpia bandeja (KEEP reglas Sebastián; dry-run por defecto) |
+| [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Gmail: vaciar buzón o limpieza selectiva (dry-run por defecto) |
 
 Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
 
