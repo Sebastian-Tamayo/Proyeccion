@@ -102,14 +102,13 @@ Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PRO
 
 ## Bot Grok: limpiar correos (Gmail)
 
-Perfil **Sebastián inbox** (`sbsesebeese@gmail.com`): conserva nombre/Ilerna/Capgemini/Intelci/gimnasio/estudios/DevOps/TIC; el resto de la **bandeja de entrada** → papelera.
+Perfil **vaciar-todo** (`sbsesebeese@gmail.com`): mueve a papelera **todos** los correos del buzón (sin KEEP). Recuperables ~30 días.
 
 ```bash
 pip install -r requirements.txt
-# Auth Gmail (credentials.json o auth_movil + secretos)
 python3 scripts/grok_email_cleaner/limpiar_correos.py --demo
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-inbox
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-inbox --apply
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile vaciar-todo
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile vaciar-todo --apply
 ```
 
 Guía: [`scripts/grok_email_cleaner/COMO-PROBAR.md`](scripts/grok_email_cleaner/COMO-PROBAR.md).

@@ -1,46 +1,38 @@
-# Limpieza Gmail — bandeja completa (perfil Sebastián)
+# Limpieza Gmail — vaciar TODO
 
 Cuenta: `sbsesebeese@gmail.com`
 
-## Política
+## Política (perfil default: `vaciar-todo`)
 
-Sobre **toda la bandeja de entrada** (`in:inbox`):
+Mueve a **papelera** casi todo el buzón:
 
-| Acción | Condición |
-|--------|-----------|
-| **KEEP** | Contiene Sebastián / Olaya / Tamayo |
-| **KEEP** | Ilerna, Capgemini, Intelci |
-| **KEEP** | Gimnasio, estudios, bootcamp, DevOps |
-| **KEEP** | Temas TIC (cloud, programación, soporte…) |
-| **DELETE → papelera** | El resto de la bandeja |
+- Query: `-in:trash -in:drafts -in:chats`
+- **KEEP = 0** (no conserva nada: ni Ilerna, ni Capgemini, ni starred)
+- Recuperable ~30 días desde la papelera de Gmail
 
-Los mensajes van a **papelera** (~30 días), no a borrado permanente.  
-Starred / IMPORTANT se protegen salvo `--include-starred`.
+Perfiles opcionales con KEEP selectivo:
 
-Perfil opcional solo spam: `--profile sebastian-spam`.
+- `sebastian-inbox` — conserva nombre/Ilerna/Capgemini/TIC… en inbox
+- `sebastian-spam` — misma lógica solo en spam
 
-## Auth (móvil o PC)
+## Auth
 
-Ver `auth_movil.py` / secretos `GMAIL_CLIENT_ID` + `GMAIL_CLIENT_SECRET`,  
-o `credentials.json` OAuth Desktop.
+Ver `auth_movil.py` o `credentials.json` OAuth.
 
 ## Comandos
 
 ```bash
-# Demo sin Gmail
+# Demo (sin Gmail): borra los 5 de ejemplo
 python3 scripts/grok_email_cleaner/limpiar_correos.py --demo
 
-# DRY-RUN: toda la bandeja
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-inbox
+# DRY-RUN real: lista qué vaciaría
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile vaciar-todo
 
-# Prueba con N mensajes
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-inbox --max 50
+# APLICAR (pide escribir VACIAR)
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile vaciar-todo --apply
 
-# APLICAR
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-inbox --apply
-
-# Solo spam (antiguo comportamiento)
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam
+# APLICAR sin prompt
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile vaciar-todo --apply --yes
 ```
 
 ## Salida

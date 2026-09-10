@@ -2,11 +2,13 @@
 """
 Bot limpieza Gmail (reglas Sebastián y/o Grok).
 
-Perfil inbox Sebastián (default):
-  KEEP si nombre Sebastián / Ilerna / Capgemini / Intelci / gimnasio /
-  estudios / bootcamp devops / TIC; el resto de la BANDEJA → papelera.
+Perfil vaciar-todo (default):
+  Mueve a papelera TODOS los correos del buzón (inbox, spam, etc.).
+  No conserva nada. Excluye solo trash/drafts/chats.
 
-Perfil opcional sebastian-spam: misma política solo sobre in:spam.
+Perfiles opcionales:
+  sebastian-inbox — KEEP nombre/Ilerna/Capgemini/TIC…; resto inbox → papelera
+  sebastian-spam  — misma política solo sobre spam
 
 Por defecto DRY-RUN. Nada se elimina sin --apply.
 """
@@ -40,6 +42,8 @@ try:
         CUENTA_OBJETIVO,
         QUERY_INBOX_TODO,
         QUERY_SPAM_TODO,
+        QUERY_VACIAR_TODO,
+        clasificar_borrar_todo,
         clasificar_por_reglas,
     )
 except ImportError:
@@ -54,6 +58,8 @@ except ImportError:
         CUENTA_OBJETIVO,
         QUERY_INBOX_TODO,
         QUERY_SPAM_TODO,
+        QUERY_VACIAR_TODO,
+        clasificar_borrar_todo,
         clasificar_por_reglas,
     )
 
@@ -64,23 +70,24 @@ MIN_CONFIDENCE_DEFAULT = 0.75
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
-            "Limpia bandeja Gmail con reglas Sebastián (y opcional Grok). "
+            "Limpia Gmail. Perfil vaciar-todo borra todo sin KEEP. "
             "Sin --apply solo simula."
         )
     )
     p.add_argument(
         "--profile",
-        choices=["sebastian-inbox", "sebastian-spam", "custom"],
-        default="sebastian-inbox",
+        choices=["vaciar-todo", "sebastian-inbox", "sebastian-spam", "custom"],
+        default="vaciar-todo",
         help=(
-            "sebastian-inbox = in:inbox + reglas KEEP (default). "
-            "sebastian-spam = solo carpeta spam."
+            "vaciar-todo = borrar TODO el buzón (default). "
+            "sebastian-inbox = KEEP selectivo en inbox. "
+            "sebastian-spam = KEEP selectivo solo en spam."
         ),
     )
     p.add_argument(
         "--query",
         default=None,
-        help="Query Gmail. Por defecto del perfil (in:inbox).",
+        help="Query Gmail. Por defecto del perfil.",
     )
     p.add_argument(
         "--max",
@@ -91,7 +98,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--use-grok",
         action="store_true",
-        help="Clasificar con Grok. Por defecto solo reglas fijas (sin API xAI).",
+        help="Clasificar con Grok (no aplica a vaciar-todo).",
     )
     p.add_argument(
         "--criterios",
@@ -107,7 +114,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--include-starred",
         action="store_true",
-        help="Permite trash de starred/IMPORTANT.",
+        help="Permite trash de starred/IMPORTANT (vaciar-todo ya lo hace).",
     )
     p.add_argument(
         "--expect-account",
@@ -314,20 +321,25 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     args = parse_args()
-    rules_only = not args.use_grok
+    vaciar = args.profile == "vaciar-todo"
+    rules_only = not args.use_grok or vaciar
+    # Vaciar = también starred/IMPORTANT
+    include_starred = True if vaciar else args.include_starred
     account = ""
 
-    if args.profile == "sebastian-spam":
+    if args.profile == "vaciar-todo":
+        query = args.query or QUERY_VACIAR_TODO
+    elif args.profile == "sebastian-spam":
         query = args.query or QUERY_SPAM_TODO
     elif args.profile == "sebastian-inbox":
         query = args.query or QUERY_INBOX_TODO
     else:
-        query = args.query or os.getenv("GMAIL_QUERY", QUERY_INBOX_TODO)
+        query = args.query or os.getenv("GMAIL_QUERY", QUERY_VACIAR_TODO)
 
     if args.demo:
         print("Modo DEMO: correos de ejemplo (sin Gmail).\n")
         correos = correos_demo()
-        query = "demo in:inbox"
+        query = "demo vaciar-todo" if vaciar else "demo in:inbox"
         account = CUENTA_OBJETIVO
         service = None
     else:
@@ -357,7 +369,10 @@ def main() -> int:
 
     correos_by_id = {c["id"]: c for c in correos}
 
-    if rules_only:
+    if vaciar:
+        print(f"Marcando {len(correos)} correos para VACIAR (DELETE todos)...")
+        resultado = clasificar_borrar_todo(correos)
+    elif rules_only:
         print(f"Clasificando {len(correos)} correos con REGLAS Sebastián...")
         resultado = clasificar_por_reglas(correos)
     else:
@@ -370,7 +385,7 @@ def main() -> int:
     a_borrar, conservados = filtrar_protegidos(
         resultado.get("decisions", []),
         correos_by_id,
-        include_starred=args.include_starred,
+        include_starred=include_starred,
         min_confidence=args.min_confidence,
         rules_only=rules_only,
     )
@@ -379,6 +394,8 @@ def main() -> int:
     print(resultado.get("summary", ""))
     print(f"Candidatos a papelera: {len(a_borrar)}")
     print(f"Conservar: {len(conservados)}")
+    if vaciar:
+        print("AVISO: perfil vaciar-todo — no se conserva ningún correo.")
     print("=" * 60)
 
     for d in conservados[:20]:
@@ -403,11 +420,12 @@ def main() -> int:
             print("\n--apply ignorado en --demo.")
         else:
             if not args.yes:
+                palabra = "VACIAR" if vaciar else "SI"
                 resp = input(
-                    f"\n¿Mover {len(a_borrar)} correo(s) de la BANDEJA a PAPELERA "
-                    f"en {account}? [escribe SI]: "
+                    f"\n¿Mover {len(a_borrar)} correo(s) a PAPELERA "
+                    f"en {account}? [escribe {palabra}]: "
                 ).strip()
-                if resp != "SI":
+                if resp != palabra:
                     print("Cancelado.")
                     dry_run = True
                 else:
@@ -424,9 +442,9 @@ def main() -> int:
     else:
         print(
             "\nDRY-RUN: no se eliminó nada.\n"
-            "Para ejecutar:\n"
+            "Para VACIAR TODO el buzón:\n"
             "  python3 scripts/grok_email_cleaner/limpiar_correos.py "
-            "--profile sebastian-inbox --apply --yes"
+            "--profile vaciar-todo --apply --yes"
         )
 
     ruta = guardar_informe(

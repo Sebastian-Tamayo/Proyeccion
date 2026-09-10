@@ -15,7 +15,9 @@ CUENTA_OBJETIVO = "sbsesebeese@gmail.com"
 
 # Queries Gmail
 QUERY_INBOX_TODO = "in:inbox"
-QUERY_SPAM_TODO = "in:spam"  # perfil opcional
+QUERY_SPAM_TODO = "in:spam"
+# Casi todo el buzón (excepto papelera, borradores y chats)
+QUERY_VACIAR_TODO = "-in:trash -in:drafts -in:chats"
 
 # Patrones KEEP (sobre from+to+subject+snippet normalizado)
 KEEP_PATTERNS: list[tuple[str, str]] = [
@@ -111,6 +113,27 @@ def clasificar_por_reglas(correos: list[dict[str, Any]]) -> dict[str, Any]:
             f"total={len(correos)}"
         ),
         "model": "rules:sebastian-inbox",
+    }
+
+
+def clasificar_borrar_todo(correos: list[dict[str, Any]]) -> dict[str, Any]:
+    """Marca TODOS los correos como DELETE. No conserva ninguno."""
+    decisions = [
+        {
+            "id": correo["id"],
+            "action": "DELETE",
+            "confidence": 1.0,
+            "reason": "Vaciar buzón: borrar todo sin excepciones KEEP",
+        }
+        for correo in correos
+    ]
+    return {
+        "decisions": decisions,
+        "summary": (
+            f"Vaciar TODO: DELETE={len(decisions)}, KEEP=0, "
+            f"total={len(correos)}"
+        ),
+        "model": "rules:vaciar-todo",
     }
 
 
