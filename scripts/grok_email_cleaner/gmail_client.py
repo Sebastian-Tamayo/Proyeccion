@@ -26,7 +26,12 @@ def autenticar(
     credentials_path: Path = DEFAULT_CREDENTIALS,
     token_path: Path = DEFAULT_TOKEN,
 ):
-    """OAuth local. Abre el navegador la primera vez."""
+    """
+    OAuth Gmail.
+    - Si existe token.json válido → lo usa / refresca.
+    - Si hay GMAIL_CLIENT_ID+SECRET y no hay token → device flow (móvil).
+    - Si hay credentials.json Desktop → abre navegador local (PC).
+    """
     creds = None
     if token_path.exists():
         creds = Credentials.from_authorized_user_file(str(token_path), SCOPES)
@@ -35,10 +40,22 @@ def autenticar(
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
+            client_id = os.getenv("GMAIL_CLIENT_ID", "").strip()
+            client_secret = os.getenv("GMAIL_CLIENT_SECRET", "").strip()
+            if client_id and client_secret:
+                raise FileNotFoundError(
+                    "No hay token.json. Desde el móvil ejecuta primero:\n"
+                    "  python3 scripts/grok_email_cleaner/auth_movil.py\n"
+                    "Te dará un código + enlace para autorizar en el teléfono."
+                )
             if not credentials_path.exists():
                 raise FileNotFoundError(
-                    f"No está {credentials_path}. Descarga OAuth Desktop "
-                    "desde Google Cloud Console (Gmail API) y guárdalo ahí.\n"
+                    "Falta autenticación Gmail.\n"
+                    "Opción MÓVIL (recomendada en cloud):\n"
+                    "  1) Crea OAuth 'TVs and Limited Input devices' en Google Cloud\n"
+                    "  2) Exporta GMAIL_CLIENT_ID y GMAIL_CLIENT_SECRET\n"
+                    "  3) python3 scripts/grok_email_cleaner/auth_movil.py\n"
+                    "Opción PC: guarda credentials.json Desktop OAuth y reintenta.\n"
                     "Guía: scripts/grok_email_cleaner/COMO-PROBAR.md"
                 )
             flow = InstalledAppFlow.from_client_secrets_file(
