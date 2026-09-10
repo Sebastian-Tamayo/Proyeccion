@@ -102,15 +102,17 @@ Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PRO
 
 ## Bot Grok: limpiar correos (Gmail)
 
+Perfil **Sebastián spam** (`sbsesebeese@gmail.com`): conserva nombre/Ilerna/Capgemini/Intelci/gimnasio/estudios/DevOps/TIC; el resto del spam → papelera.
+
 ```bash
 pip install -r requirements.txt
-# Configura XAI_API_KEY en .env y credentials.json de Gmail OAuth
-python scripts/grok_email_cleaner/limpiar_correos.py --demo     # prueba sin Gmail
-python scripts/grok_email_cleaner/limpiar_correos.py            # dry-run real
-python scripts/grok_email_cleaner/limpiar_correos.py --apply    # mueve a papelera
+# Pon credentials.json de Gmail OAuth (Desktop) en scripts/grok_email_cleaner/
+python3 scripts/grok_email_cleaner/limpiar_correos.py --demo
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam --apply
 ```
 
-Guía completa: [`scripts/grok_email_cleaner/COMO-PROBAR.md`](scripts/grok_email_cleaner/COMO-PROBAR.md).
+Guía: [`scripts/grok_email_cleaner/COMO-PROBAR.md`](scripts/grok_email_cleaner/COMO-PROBAR.md).
 
 ## Estructura del repositorio
 

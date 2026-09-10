@@ -1,0 +1,119 @@
+"""Reglas fijas de conservación para limpieza de spam (Sebastián).
+
+KEEP si coincide; el resto de spam → DELETE.
+No hace falta Grok para este perfil.
+"""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from typing import Any
+
+# Cuenta objetivo (OAuth debe ser esta)
+CUENTA_OBJETIVO = "sbsesebeese@gmail.com"
+
+# Query Gmail: todo el spam
+QUERY_SPAM_TODO = "in:spam"
+
+# Patrones KEEP (sobre from+to+subject+snippet normalizado)
+KEEP_PATTERNS: list[tuple[str, str]] = [
+    # Nombre
+    (r"sebastian", "Contiene el nombre Sebastián"),
+    (r"\bolaya\b", "Contiene apellido Olaya"),
+    (r"\btamayo\b", "Contiene apellido Tamayo"),
+    # Formación / empresas / vida
+    (r"ilerna", "Correo Ilerna"),
+    (r"capgemini", "Correo Capgemini"),
+    (r"intelci", "Correo Intelci/Intelcia"),
+    (r"gimnasio|\bgym\b|fitness|deport", "Relacionado con gimnasio"),
+    (r"estudio|estudiant|universidad|formacion|campus|matricula", "Relacionado con estudios"),
+    (r"bootcamp", "Bootcamp"),
+    (r"devops|lemoncode", "DevOps / Lemoncode"),
+    # TIC / tech
+    (r"\btic\b|informatica|programac|software|desarroll|developer|"
+     r"cloud|azure|aws|gcp|kubernetes|docker|terraform|linux|"
+     r"cibersegur|cyber|helpdesk|\bl3\b|sysadmin|redes\b|sistemas|"
+     r"soporte tecnico|it support|tecnolog", "Relacionado con TIC"),
+]
+
+
+def normalizar(texto: str) -> str:
+    """Minúsculas + sin acentos para matching robusto."""
+    if not texto:
+        return ""
+    nfkd = unicodedata.normalize("NFKD", texto)
+    sin_acentos = "".join(c for c in nfkd if not unicodedata.combining(c))
+    return sin_acentos.lower()
+
+
+def texto_correo(correo: dict[str, Any]) -> str:
+    partes = [
+        correo.get("from", ""),
+        correo.get("to", ""),
+        correo.get("subject", ""),
+        correo.get("snippet", ""),
+    ]
+    return normalizar(" ".join(partes))
+
+
+def motivo_keep(correo: dict[str, Any]) -> str | None:
+    """Si debe conservarse, devuelve el motivo; si no, None."""
+    blob = texto_correo(correo)
+    for pattern, motivo in KEEP_PATTERNS:
+        if re.search(pattern, blob, flags=re.IGNORECASE):
+            return motivo
+    return None
+
+
+def clasificar_por_reglas(correos: list[dict[str, Any]]) -> dict[str, Any]:
+    """
+    Política Sebastián spam:
+    - KEEP si coincide con patrones protegidos
+    - DELETE el resto
+    """
+    decisions: list[dict[str, Any]] = []
+    kept = 0
+    deleted = 0
+    for correo in correos:
+        motivo = motivo_keep(correo)
+        if motivo:
+            kept += 1
+            decisions.append(
+                {
+                    "id": correo["id"],
+                    "action": "KEEP",
+                    "confidence": 1.0,
+                    "reason": motivo,
+                }
+            )
+        else:
+            deleted += 1
+            decisions.append(
+                {
+                    "id": correo["id"],
+                    "action": "DELETE",
+                    "confidence": 1.0,
+                    "reason": "Spam sin coincidencia KEEP (nombre/Ilerna/Capgemini/TIC/...)",
+                }
+            )
+    return {
+        "decisions": decisions,
+        "summary": (
+            f"Reglas Sebastián spam: KEEP={kept}, DELETE={deleted}, "
+            f"total={len(correos)}"
+        ),
+        "model": "rules:sebastian-spam",
+    }
+
+
+CRITERIOS_GROK_SEBASTIAN = """
+Perfil sbsesebeese@gmail.com — limpieza de SPAM.
+CONSERVA (KEEP) si el correo menciona o viene de:
+- Nombre Sebastián / Olaya / Tamayo
+- Ilerna, Capgemini, Intelci/Intelcia
+- Gimnasio, estudios, bootcamp, DevOps, Lemoncode
+- Cualquier tema TIC (informática, cloud, programación, soporte, etc.)
+EL RESTO del spam → DELETE.
+Ante duda en spam genérico de marketing → DELETE.
+""".strip()

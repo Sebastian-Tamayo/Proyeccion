@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """
-Bot Grok → Gmail: clasifica correos y (opcionalmente) los mueve a la papelera.
+Bot limpieza Gmail (reglas Sebastián y/o Grok).
 
-Por defecto es DRY-RUN: solo muestra qué borraría. Nada se elimina sin --apply.
+Perfil spam Sebastián:
+  KEEP si nombre Sebastián / Ilerna / Capgemini / Intelci / gimnasio /
+  estudios / bootcamp devops / TIC; el resto del spam → papelera.
+
+Por defecto DRY-RUN. Nada se elimina sin --apply.
 """
 
 from __future__ import annotations
@@ -14,25 +18,40 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Raíz del repo en PYTHONPATH
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
 
-from agents.agente_grok_correo import clasificar_correos
+load_dotenv(ROOT / ".env")
 
 try:
     from scripts.grok_email_cleaner.gmail_client import (
         autenticar,
-        listar_correos,
-        mover_a_papelera,
+        email_perfil,
+        listar_correos_paginado,
+        mover_varios_a_papelera,
+    )
+    from scripts.grok_email_cleaner.reglas_keep import (
+        CRITERIOS_GROK_SEBASTIAN,
+        CUENTA_OBJETIVO,
+        QUERY_SPAM_TODO,
+        clasificar_por_reglas,
     )
 except ImportError:
-    from gmail_client import autenticar, listar_correos, mover_a_papelera  # type: ignore
-
-load_dotenv(ROOT / ".env")
+    from gmail_client import (  # type: ignore
+        autenticar,
+        email_perfil,
+        listar_correos_paginado,
+        mover_varios_a_papelera,
+    )
+    from reglas_keep import (  # type: ignore
+        CRITERIOS_GROK_SEBASTIAN,
+        CUENTA_OBJETIVO,
+        QUERY_SPAM_TODO,
+        clasificar_por_reglas,
+    )
 
 OUTPUT_DIR = ROOT / "output"
 MIN_CONFIDENCE_DEFAULT = 0.75
@@ -41,41 +60,57 @@ MIN_CONFIDENCE_DEFAULT = 0.75
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
-            "Clasifica correos con Grok y mueve a papelera Gmail. "
-            "Sin --apply solo simula (dry-run)."
+            "Limpia spam Gmail con reglas Sebastián (y opcional Grok). "
+            "Sin --apply solo simula."
         )
     )
     p.add_argument(
+        "--profile",
+        choices=["sebastian-spam", "custom"],
+        default="sebastian-spam",
+        help="sebastian-spam = in:spam + reglas KEEP del usuario (default).",
+    )
+    p.add_argument(
         "--query",
-        default=os.getenv("GMAIL_QUERY", "in:inbox newer_than:30d"),
-        help='Consulta Gmail (default: in:inbox newer_than:30d)',
+        default=None,
+        help="Query Gmail. Por defecto del perfil (in:spam).",
     )
     p.add_argument(
         "--max",
         type=int,
-        default=int(os.getenv("GMAIL_MAX", "25")),
-        help="Máximo de correos a revisar (1-100).",
+        default=None,
+        help="Máximo de correos. Sin valor = todos los de la query.",
+    )
+    p.add_argument(
+        "--use-grok",
+        action="store_true",
+        help="Clasificar con Grok. Por defecto solo reglas fijas (sin API xAI).",
     )
     p.add_argument(
         "--criterios",
         default="",
-        help="Instrucciones extra para Grok (ej: 'borra newsletters de LinkedIn').",
+        help="Criterios extra si usas --use-grok.",
     )
     p.add_argument(
         "--min-confidence",
         type=float,
         default=float(os.getenv("GROK_MIN_CONFIDENCE", str(MIN_CONFIDENCE_DEFAULT))),
-        help="Confianza mínima para DELETE (default 0.75).",
+        help="Confianza mínima DELETE si usas Grok (default 0.75).",
     )
     p.add_argument(
         "--include-starred",
         action="store_true",
-        help="Permite proponer DELETE en correos con estrella/importantes.",
+        help="Permite trash de starred/IMPORTANT.",
+    )
+    p.add_argument(
+        "--expect-account",
+        default=CUENTA_OBJETIVO,
+        help=f"Email que debe coincidir con OAuth (default {CUENTA_OBJETIVO}).",
     )
     p.add_argument(
         "--apply",
         action="store_true",
-        help="Ejecuta trash real. Sin esto solo dry-run.",
+        help="Ejecuta trash real.",
     )
     p.add_argument(
         "--yes",
@@ -85,7 +120,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--demo",
         action="store_true",
-        help="Clasifica correos de ejemplo sin conectar a Gmail (prueba Grok).",
+        help="Correos de ejemplo (sin Gmail).",
     )
     return p.parse_args()
 
@@ -93,46 +128,74 @@ def parse_args() -> argparse.Namespace:
 def correos_demo() -> list[dict]:
     return [
         {
-            "id": "demo_001",
-            "thread_id": "t1",
+            "id": "demo_spam_promo",
             "from": "ofertas@tienda-spam.example",
-            "to": "yo@example.com",
-            "subject": "🔥 70% OFF solo hoy — no te lo pierdas",
-            "date": "Mon, 01 Sep 2026 10:00:00 +0000",
-            "snippet": "Cupón exclusivo de marketing masivo...",
-            "labels": ["INBOX", "UNREAD"],
+            "to": CUENTA_OBJETIVO,
+            "subject": "70% OFF solo hoy",
+            "snippet": "Cupón marketing masivo",
+            "labels": ["SPAM"],
             "starred": False,
             "important": False,
             "unread": True,
             "has_unsubscribe": True,
+            "date": "",
+            "thread_id": "t1",
         },
         {
-            "id": "demo_002",
-            "thread_id": "t2",
-            "from": "rrhh@empresademo.example",
-            "to": "sebastian@example.com",
-            "subject": "Contrato anexo — firma pendiente",
-            "date": "Tue, 02 Sep 2026 09:00:00 +0000",
-            "snippet": "Adjunto el anexo laboral para revisión...",
-            "labels": ["INBOX", "IMPORTANT"],
+            "id": "demo_ilerna",
+            "from": "secretaria@ilerna.es",
+            "to": CUENTA_OBJETIVO,
+            "subject": "Matrícula pendiente",
+            "snippet": "Hola Sebastián, revisa tu matrícula",
+            "labels": ["SPAM"],
             "starred": False,
-            "important": True,
+            "important": False,
             "unread": True,
             "has_unsubscribe": False,
+            "date": "",
+            "thread_id": "t2",
         },
         {
-            "id": "demo_003",
-            "thread_id": "t3",
-            "from": "noreply@linkedin.com",
-            "to": "yo@example.com",
-            "subject": "Tienes 12 notificaciones nuevas",
-            "date": "Wed, 03 Sep 2026 12:00:00 +0000",
-            "snippet": "Fulano y 11 personas más vieron tu perfil...",
-            "labels": ["INBOX"],
+            "id": "demo_capgemini",
+            "from": "noreply@capgemini.com",
+            "to": CUENTA_OBJETIVO,
+            "subject": "Proceso selección",
+            "snippet": "Actualización de candidatura",
+            "labels": ["SPAM"],
             "starred": False,
             "important": False,
             "unread": False,
+            "has_unsubscribe": False,
+            "date": "",
+            "thread_id": "t3",
+        },
+        {
+            "id": "demo_devops",
+            "from": "info@lemoncode.net",
+            "to": CUENTA_OBJETIVO,
+            "subject": "Bootcamp DevOps módulo 3",
+            "snippet": "Contenido cloud y terraform",
+            "labels": ["SPAM"],
+            "starred": False,
+            "important": False,
+            "unread": False,
+            "has_unsubscribe": False,
+            "date": "",
+            "thread_id": "t4",
+        },
+        {
+            "id": "demo_random",
+            "from": "noreply@casino-xyz.example",
+            "to": CUENTA_OBJETIVO,
+            "subject": "Gana dinero ya",
+            "snippet": "Apuesta gratis",
+            "labels": ["SPAM"],
+            "starred": False,
+            "important": False,
+            "unread": True,
             "has_unsubscribe": True,
+            "date": "",
+            "thread_id": "t5",
         },
     ]
 
@@ -143,8 +206,8 @@ def filtrar_protegidos(
     *,
     include_starred: bool,
     min_confidence: float,
+    rules_only: bool,
 ) -> tuple[list[dict], list[dict]]:
-    """Separa DELETE ejecutable vs bloqueados/conservados."""
     a_borrar: list[dict] = []
     conservados: list[dict] = []
 
@@ -164,7 +227,7 @@ def filtrar_protegidos(
                 }
             )
             continue
-        if float(d.get("confidence", 0)) < min_confidence:
+        if not rules_only and float(d.get("confidence", 0)) < min_confidence:
             conservados.append(
                 {
                     **d,
@@ -188,6 +251,7 @@ def guardar_informe(
     dry_run: bool,
     summary: str,
     model: str,
+    account: str,
     a_borrar: list[dict],
     conservados: list[dict],
     correos_by_id: dict[str, dict],
@@ -197,12 +261,13 @@ def guardar_informe(
     ruta = OUTPUT_DIR / "grok_email_cleaner.md"
     stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     lineas = [
-        f"# Grok Email Cleaner — {stamp}",
+        f"# Email Cleaner — {stamp}",
         "",
+        f"- Cuenta: `{account or '(demo)'}`",
         f"- Modo: {'DRY-RUN' if dry_run else 'APPLY (papelera)'}",
         f"- Query: `{query}`",
-        f"- Modelo: `{model}`",
-        f"- Resumen Grok: {summary or '(sin resumen)'}",
+        f"- Motor: `{model}`",
+        f"- Resumen: {summary or '(sin resumen)'}",
         f"- Candidatos a papelera: {len(a_borrar)}",
         f"- Conservados / bloqueados: {len(conservados)}",
         f"- Movidos a papelera: {len(aplicados)}",
@@ -216,7 +281,7 @@ def guardar_informe(
         c = correos_by_id.get(d["id"], {})
         estado = "TRASHED" if d["id"] in aplicados else "PENDIENTE"
         lineas.append(
-            f"- [{estado}] `{d['id']}` conf={d.get('confidence')} — "
+            f"- [{estado}] `{d['id']}` — "
             f"**{c.get('subject', '(sin asunto)')}** | {c.get('from', '')}\n"
             f"  - Motivo: {d.get('reason', '')}"
         )
@@ -228,7 +293,7 @@ def guardar_informe(
         c = correos_by_id.get(d["id"], {})
         flag = " (bloqueado)" if d.get("blocked") else ""
         lineas.append(
-            f"- `{d['id']}`{flag} conf={d.get('confidence')} — "
+            f"- `{d['id']}`{flag} — "
             f"**{c.get('subject', '(sin asunto)')}**\n"
             f"  - Motivo: {d.get('reason', '')}"
         )
@@ -242,79 +307,125 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     args = parse_args()
+    rules_only = not args.use_grok
+    account = ""
+
+    if args.profile == "sebastian-spam":
+        query = args.query or QUERY_SPAM_TODO
+    else:
+        query = args.query or os.getenv("GMAIL_QUERY", "in:spam")
 
     if args.demo:
         print("Modo DEMO: correos de ejemplo (sin Gmail).\n")
         correos = correos_demo()
-        query = "demo"
+        query = "demo in:spam"
+        account = CUENTA_OBJETIVO
+        service = None
     else:
         print("Autenticando Gmail...")
         service = autenticar()
-        print(f"Listando correos con query: {args.query!r} (max={args.max})")
-        correos = listar_correos(service, query=args.query, max_results=args.max)
+        account = email_perfil(service)
+        print(f"Cuenta OAuth: {account}")
+        esperado = (args.expect_account or "").lower().strip()
+        if esperado and account != esperado:
+            print(
+                f"ERROR: la sesión es {account}, se esperaba {esperado}.\n"
+                "Borra scripts/grok_email_cleaner/token.json y vuelve a login "
+                f"con {esperado}."
+            )
+            return 2
+        limite = args.max
+        print(
+            f"Listando correos query={query!r} "
+            f"max={'TODOS' if limite is None else limite}"
+        )
+        correos = listar_correos_paginado(
+            service, query=query, max_results=limite
+        )
         if not correos:
             print("No hay correos que coincidan con la query.")
             return 0
 
     correos_by_id = {c["id"]: c for c in correos}
-    print(f"Enviando {len(correos)} correos a Grok para clasificar...")
-    resultado = clasificar_correos(correos, criterios_extra=args.criterios)
+
+    if rules_only:
+        print(f"Clasificando {len(correos)} correos con REGLAS Sebastián...")
+        resultado = clasificar_por_reglas(correos)
+    else:
+        from agents.agente_grok_correo import clasificar_correos
+
+        criterios = args.criterios or CRITERIOS_GROK_SEBASTIAN
+        print(f"Clasificando {len(correos)} correos con GROK...")
+        resultado = clasificar_correos(correos, criterios_extra=criterios)
+
     a_borrar, conservados = filtrar_protegidos(
         resultado.get("decisions", []),
         correos_by_id,
         include_starred=args.include_starred,
         min_confidence=args.min_confidence,
+        rules_only=rules_only,
     )
 
     print("\n" + "=" * 60)
-    print(f"Resumen Grok: {resultado.get('summary', '')}")
+    print(resultado.get("summary", ""))
     print(f"Candidatos a papelera: {len(a_borrar)}")
-    print(f"Conservar / bloqueados: {len(conservados)}")
+    print(f"Conservar: {len(conservados)}")
     print("=" * 60)
 
-    for d in a_borrar:
+    for d in conservados[:20]:
         c = correos_by_id[d["id"]]
-        print(
-            f"  DELETE  [{d['confidence']:.2f}] {c.get('subject', '')[:70]}\n"
-            f"          de: {c.get('from', '')[:60]}\n"
-            f"          motivo: {d.get('reason', '')}"
-        )
+        print(f"  KEEP    {c.get('subject', '')[:70]}")
+        print(f"          motivo: {d.get('reason', '')}")
+    if len(conservados) > 20:
+        print(f"  ... +{len(conservados) - 20} KEEP más")
+
+    for d in a_borrar[:30]:
+        c = correos_by_id[d["id"]]
+        print(f"  DELETE  {c.get('subject', '')[:70]}")
+        print(f"          de: {c.get('from', '')[:60]}")
+    if len(a_borrar) > 30:
+        print(f"  ... +{len(a_borrar) - 30} DELETE más")
 
     aplicados: list[str] = []
     dry_run = not args.apply
 
     if args.apply and a_borrar:
         if args.demo:
-            print("\n--apply ignorado en --demo (no hay Gmail real).")
+            print("\n--apply ignorado en --demo.")
         else:
             if not args.yes:
                 resp = input(
-                    f"\n¿Mover {len(a_borrar)} correo(s) a la PAPELERA? [escribe SI]: "
+                    f"\n¿Mover {len(a_borrar)} correo(s) de SPAM a PAPELERA "
+                    f"en {account}? [escribe SI]: "
                 ).strip()
                 if resp != "SI":
-                    print("Cancelado. No se movió nada.")
+                    print("Cancelado.")
                     dry_run = True
                 else:
                     dry_run = False
             if not dry_run:
-                service = autenticar()
-                for d in a_borrar:
-                    mover_a_papelera(service, d["id"])
-                    aplicados.append(d["id"])
-                    print(f"  → Papelera: {d['id']}")
+                assert service is not None
+                print(f"Moviendo {len(a_borrar)} a papelera...")
+                aplicados = mover_varios_a_papelera(
+                    service, [d["id"] for d in a_borrar]
+                )
+                print(f"Listo: {len(aplicados)} movidos a papelera.")
     elif args.apply and not a_borrar:
         print("\nNada que aplicar.")
     else:
         print(
-            "\nDRY-RUN: no se eliminó nada. "
-            "Repite con --apply --yes cuando quieras ejecutar."
+            "\nDRY-RUN: no se eliminó nada.\n"
+            "Para ejecutar:\n"
+            "  python3 scripts/grok_email_cleaner/limpiar_correos.py "
+            "--profile sebastian-spam --apply --yes"
         )
 
     ruta = guardar_informe(
-        query=args.query if not args.demo else "demo",
+        query=query,
         dry_run=dry_run or args.demo,
         summary=str(resultado.get("summary", "")),
         model=str(resultado.get("model", "")),
+        account=account,
         a_borrar=a_borrar,
         conservados=conservados,
         correos_by_id=correos_by_id,
@@ -322,13 +433,13 @@ def main() -> int:
     )
     print(f"\nInforme: {ruta}")
 
-    # También JSON máquina-legible
     json_path = OUTPUT_DIR / "grok_email_cleaner.json"
     json_path.write_text(
         json.dumps(
             {
+                "account": account,
                 "dry_run": dry_run or args.demo,
-                "query": args.query if not args.demo else "demo",
+                "query": query,
                 "summary": resultado.get("summary"),
                 "model": resultado.get("model"),
                 "to_trash": a_borrar,
