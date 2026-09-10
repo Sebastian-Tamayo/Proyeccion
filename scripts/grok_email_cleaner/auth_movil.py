@@ -150,7 +150,8 @@ def main() -> int:
             return 2
     except Exception as exc:  # noqa: BLE001
         print(f"Token guardado, pero no pude verificar perfil aún: {exc}")
-    print("\nListo. Ya puedes limpiar spam con limpiar_correos.py")
+    print("\nListo. Ya puedes limpiar la bandeja con:")
+    print("  python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-inbox")
     return 0
 
 
