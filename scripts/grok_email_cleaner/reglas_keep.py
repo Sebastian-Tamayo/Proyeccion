@@ -1,6 +1,6 @@
-"""Reglas fijas de conservación para limpieza de spam (Sebastián).
+"""Reglas fijas de conservación para limpieza de bandeja (Sebastián).
 
-KEEP si coincide; el resto de spam → DELETE.
+KEEP si coincide; el resto de la bandeja de entrada → DELETE (papelera).
 No hace falta Grok para este perfil.
 """
 
@@ -13,8 +13,9 @@ from typing import Any
 # Cuenta objetivo (OAuth debe ser esta)
 CUENTA_OBJETIVO = "sbsesebeese@gmail.com"
 
-# Query Gmail: todo el spam
-QUERY_SPAM_TODO = "in:spam"
+# Queries Gmail
+QUERY_INBOX_TODO = "in:inbox"
+QUERY_SPAM_TODO = "in:spam"  # perfil opcional
 
 # Patrones KEEP (sobre from+to+subject+snippet normalizado)
 KEEP_PATTERNS: list[tuple[str, str]] = [
@@ -31,10 +32,13 @@ KEEP_PATTERNS: list[tuple[str, str]] = [
     (r"bootcamp", "Bootcamp"),
     (r"devops|lemoncode", "DevOps / Lemoncode"),
     # TIC / tech
-    (r"\btic\b|informatica|programac|software|desarroll|developer|"
-     r"cloud|azure|aws|gcp|kubernetes|docker|terraform|linux|"
-     r"cibersegur|cyber|helpdesk|\bl3\b|sysadmin|redes\b|sistemas|"
-     r"soporte tecnico|it support|tecnolog", "Relacionado con TIC"),
+    (
+        r"\btic\b|informatica|programac|software|desarroll|developer|"
+        r"cloud|azure|aws|gcp|kubernetes|docker|terraform|linux|"
+        r"cibersegur|cyber|helpdesk|\bl3\b|sysadmin|redes\b|sistemas|"
+        r"soporte tecnico|it support|tecnolog",
+        "Relacionado con TIC",
+    ),
 ]
 
 
@@ -68,7 +72,7 @@ def motivo_keep(correo: dict[str, Any]) -> str | None:
 
 def clasificar_por_reglas(correos: list[dict[str, Any]]) -> dict[str, Any]:
     """
-    Política Sebastián spam:
+    Política Sebastián bandeja:
     - KEEP si coincide con patrones protegidos
     - DELETE el resto
     """
@@ -94,26 +98,29 @@ def clasificar_por_reglas(correos: list[dict[str, Any]]) -> dict[str, Any]:
                     "id": correo["id"],
                     "action": "DELETE",
                     "confidence": 1.0,
-                    "reason": "Spam sin coincidencia KEEP (nombre/Ilerna/Capgemini/TIC/...)",
+                    "reason": (
+                        "Bandeja sin coincidencia KEEP "
+                        "(nombre/Ilerna/Capgemini/gimnasio/estudios/DevOps/TIC)"
+                    ),
                 }
             )
     return {
         "decisions": decisions,
         "summary": (
-            f"Reglas Sebastián spam: KEEP={kept}, DELETE={deleted}, "
+            f"Reglas Sebastián inbox: KEEP={kept}, DELETE={deleted}, "
             f"total={len(correos)}"
         ),
-        "model": "rules:sebastian-spam",
+        "model": "rules:sebastian-inbox",
     }
 
 
 CRITERIOS_GROK_SEBASTIAN = """
-Perfil sbsesebeese@gmail.com — limpieza de SPAM.
+Perfil sbsesebeese@gmail.com — limpieza de BANDEJA DE ENTRADA (inbox).
 CONSERVA (KEEP) si el correo menciona o viene de:
 - Nombre Sebastián / Olaya / Tamayo
 - Ilerna, Capgemini, Intelci/Intelcia
 - Gimnasio, estudios, bootcamp, DevOps, Lemoncode
 - Cualquier tema TIC (informática, cloud, programación, soporte, etc.)
-EL RESTO del spam → DELETE.
-Ante duda en spam genérico de marketing → DELETE.
+EL RESTO de la bandeja → DELETE (papelera).
+Ante duda en marketing genérico → DELETE.
 """.strip()

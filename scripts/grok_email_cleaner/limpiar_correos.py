@@ -2,9 +2,11 @@
 """
 Bot limpieza Gmail (reglas Sebastián y/o Grok).
 
-Perfil spam Sebastián:
+Perfil inbox Sebastián (default):
   KEEP si nombre Sebastián / Ilerna / Capgemini / Intelci / gimnasio /
-  estudios / bootcamp devops / TIC; el resto del spam → papelera.
+  estudios / bootcamp devops / TIC; el resto de la BANDEJA → papelera.
+
+Perfil opcional sebastian-spam: misma política solo sobre in:spam.
 
 Por defecto DRY-RUN. Nada se elimina sin --apply.
 """
@@ -36,6 +38,7 @@ try:
     from scripts.grok_email_cleaner.reglas_keep import (
         CRITERIOS_GROK_SEBASTIAN,
         CUENTA_OBJETIVO,
+        QUERY_INBOX_TODO,
         QUERY_SPAM_TODO,
         clasificar_por_reglas,
     )
@@ -49,6 +52,7 @@ except ImportError:
     from reglas_keep import (  # type: ignore
         CRITERIOS_GROK_SEBASTIAN,
         CUENTA_OBJETIVO,
+        QUERY_INBOX_TODO,
         QUERY_SPAM_TODO,
         clasificar_por_reglas,
     )
@@ -60,20 +64,23 @@ MIN_CONFIDENCE_DEFAULT = 0.75
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
-            "Limpia spam Gmail con reglas Sebastián (y opcional Grok). "
+            "Limpia bandeja Gmail con reglas Sebastián (y opcional Grok). "
             "Sin --apply solo simula."
         )
     )
     p.add_argument(
         "--profile",
-        choices=["sebastian-spam", "custom"],
-        default="sebastian-spam",
-        help="sebastian-spam = in:spam + reglas KEEP del usuario (default).",
+        choices=["sebastian-inbox", "sebastian-spam", "custom"],
+        default="sebastian-inbox",
+        help=(
+            "sebastian-inbox = in:inbox + reglas KEEP (default). "
+            "sebastian-spam = solo carpeta spam."
+        ),
     )
     p.add_argument(
         "--query",
         default=None,
-        help="Query Gmail. Por defecto del perfil (in:spam).",
+        help="Query Gmail. Por defecto del perfil (in:inbox).",
     )
     p.add_argument(
         "--max",
@@ -133,7 +140,7 @@ def correos_demo() -> list[dict]:
             "to": CUENTA_OBJETIVO,
             "subject": "70% OFF solo hoy",
             "snippet": "Cupón marketing masivo",
-            "labels": ["SPAM"],
+            "labels": ["INBOX"],
             "starred": False,
             "important": False,
             "unread": True,
@@ -147,7 +154,7 @@ def correos_demo() -> list[dict]:
             "to": CUENTA_OBJETIVO,
             "subject": "Matrícula pendiente",
             "snippet": "Hola Sebastián, revisa tu matrícula",
-            "labels": ["SPAM"],
+            "labels": ["INBOX"],
             "starred": False,
             "important": False,
             "unread": True,
@@ -161,7 +168,7 @@ def correos_demo() -> list[dict]:
             "to": CUENTA_OBJETIVO,
             "subject": "Proceso selección",
             "snippet": "Actualización de candidatura",
-            "labels": ["SPAM"],
+            "labels": ["INBOX"],
             "starred": False,
             "important": False,
             "unread": False,
@@ -175,7 +182,7 @@ def correos_demo() -> list[dict]:
             "to": CUENTA_OBJETIVO,
             "subject": "Bootcamp DevOps módulo 3",
             "snippet": "Contenido cloud y terraform",
-            "labels": ["SPAM"],
+            "labels": ["INBOX"],
             "starred": False,
             "important": False,
             "unread": False,
@@ -189,7 +196,7 @@ def correos_demo() -> list[dict]:
             "to": CUENTA_OBJETIVO,
             "subject": "Gana dinero ya",
             "snippet": "Apuesta gratis",
-            "labels": ["SPAM"],
+            "labels": ["INBOX"],
             "starred": False,
             "important": False,
             "unread": True,
@@ -312,13 +319,15 @@ def main() -> int:
 
     if args.profile == "sebastian-spam":
         query = args.query or QUERY_SPAM_TODO
+    elif args.profile == "sebastian-inbox":
+        query = args.query or QUERY_INBOX_TODO
     else:
-        query = args.query or os.getenv("GMAIL_QUERY", "in:spam")
+        query = args.query or os.getenv("GMAIL_QUERY", QUERY_INBOX_TODO)
 
     if args.demo:
         print("Modo DEMO: correos de ejemplo (sin Gmail).\n")
         correos = correos_demo()
-        query = "demo in:spam"
+        query = "demo in:inbox"
         account = CUENTA_OBJETIVO
         service = None
     else:
@@ -395,7 +404,7 @@ def main() -> int:
         else:
             if not args.yes:
                 resp = input(
-                    f"\n¿Mover {len(a_borrar)} correo(s) de SPAM a PAPELERA "
+                    f"\n¿Mover {len(a_borrar)} correo(s) de la BANDEJA a PAPELERA "
                     f"en {account}? [escribe SI]: "
                 ).strip()
                 if resp != "SI":
@@ -417,7 +426,7 @@ def main() -> int:
             "\nDRY-RUN: no se eliminó nada.\n"
             "Para ejecutar:\n"
             "  python3 scripts/grok_email_cleaner/limpiar_correos.py "
-            "--profile sebastian-spam --apply --yes"
+            "--profile sebastian-inbox --apply --yes"
         )
 
     ruta = guardar_informe(

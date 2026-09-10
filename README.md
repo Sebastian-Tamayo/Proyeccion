@@ -79,7 +79,7 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 |------|-------------|
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
 | [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
-| [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Grok + Gmail: clasifica y mueve spam/promos a papelera (dry-run por defecto) |
+| [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Grok + Gmail: limpia bandeja (KEEP reglas Sebastián; dry-run por defecto) |
 
 Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
 
@@ -102,14 +102,14 @@ Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PRO
 
 ## Bot Grok: limpiar correos (Gmail)
 
-Perfil **Sebastián spam** (`sbsesebeese@gmail.com`): conserva nombre/Ilerna/Capgemini/Intelci/gimnasio/estudios/DevOps/TIC; el resto del spam → papelera.
+Perfil **Sebastián inbox** (`sbsesebeese@gmail.com`): conserva nombre/Ilerna/Capgemini/Intelci/gimnasio/estudios/DevOps/TIC; el resto de la **bandeja de entrada** → papelera.
 
 ```bash
 pip install -r requirements.txt
-# Pon credentials.json de Gmail OAuth (Desktop) en scripts/grok_email_cleaner/
+# Auth Gmail (credentials.json o auth_movil + secretos)
 python3 scripts/grok_email_cleaner/limpiar_correos.py --demo
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam --apply
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-inbox
+python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-inbox --apply
 ```
 
 Guía: [`scripts/grok_email_cleaner/COMO-PROBAR.md`](scripts/grok_email_cleaner/COMO-PROBAR.md).
