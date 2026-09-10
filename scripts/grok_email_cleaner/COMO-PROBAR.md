@@ -1,62 +1,68 @@
-# Limpieza spam Gmail — perfil Sebastián
+# Conectar Gmail desde el MÓVIL (sin PC)
 
-Cuenta objetivo: `sbsesebeese@gmail.com`
+El MCP de Gmail de Cursor **no comparte** el login del móvil/PC con este Cloud Agent.
+Por eso usamos **código de dispositivo**: el agente te da un código y tú lo apruebas en el teléfono.
 
-## Política
+Cuenta: `sbsesebeese@gmail.com`
 
-Sobre **todo el spam** (`in:spam`):
+## Paso 1 — Crear credenciales en Google (desde el móvil, Chrome)
 
-| Acción | Condición |
-|--------|-----------|
-| **KEEP** | Contiene Sebastián / Olaya / Tamayo |
-| **KEEP** | Ilerna, Capgemini, Intelci |
-| **KEEP** | Gimnasio, estudios, bootcamp, DevOps |
-| **KEEP** | Temas TIC (cloud, programación, soporte…) |
-| **DELETE → papelera** | El resto del spam |
+1. Abre https://console.cloud.google.com/ (con `sbsesebeese@gmail.com`)
+2. Crea un proyecto (o elige uno)
+3. Activa **Gmail API**:
+   https://console.cloud.google.com/apis/library/gmail.googleapis.com
+4. **APIs y servicios → Pantalla de consentimiento OAuth**
+   - Tipo: Externo
+   - Añádete como usuario de prueba: `sbsesebeese@gmail.com`
+5. **APIs y servicios → Credenciales → Crear credenciales → ID de cliente OAuth**
+   - Tipo de aplicación: **TVs and Limited Input devices** (TVs y dispositivos de entrada limitada)
+   - Nombre: `Proyeccion Gmail Movil`
+6. Copia:
+   - **Client ID**
+   - **Client Secret**
 
-Los mensajes van a **papelera** (recuperables ~30 días), no a borrado permanente.
+## Paso 2 — Pegar secretos en Cursor Cloud (móvil)
 
-## Setup (obligatorio en tu PC)
+1. Abre el entorno del agente:  
+   https://cursor.com/dashboard/cloud-agents/environments/e/dc2a4ff4-ad4f-11f1-bf4b-42ffb4d10ea7
+2. Añade secretos / variables:
+   - `GMAIL_CLIENT_ID` = (tu Client ID)
+   - `GMAIL_CLIENT_SECRET` = (tu Client Secret)
+3. Guarda. Si hace falta, reinicia / reabre el agente.
 
-Este entorno cloud **no tiene** tu OAuth de Gmail ni puede abrir el login interactivo por ti.
+(Alternativa: crear `.env` en el repo con esas dos claves — **no lo subas a Git**.)
 
-1. Google Cloud → habilita **Gmail API** → OAuth Desktop → descarga JSON
-2. Guárdalo como `scripts/grok_email_cleaner/credentials.json`
-3. En `.env` (opcional, solo si usas `--use-grok`):
-   ```env
-   XAI_API_KEY=...
-   ```
-4. Instala deps:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Paso 3 — Autorizar con el móvil
 
-## Comandos
+Dile al agente: **“lanza auth móvil”**  
+o ejecuta:
 
 ```bash
-# Simulación con ejemplos (sin Gmail)
-python3 scripts/grok_email_cleaner/limpiar_correos.py --demo
+python3 scripts/grok_email_cleaner/auth_movil.py
+```
 
-# DRY-RUN real: lista TODO el spam y muestra qué borraría
+Te mostrará algo como:
+
+```
+Abre: https://www.google.com/device
+Código: ABCD-EFGH
+```
+
+En el móvil:
+
+1. Abre ese enlace
+2. Pega el código
+3. Elige **`sbsesebeese@gmail.com`**
+4. Pulsa **Permitir**
+
+## Paso 4 — Limpiar spam
+
+```bash
 python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam
-
-# Limitar a N mensajes (prueba)
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam --max 50
-
-# APLICAR: mueve a papelera (pide escribir SI)
-python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam --apply
-
-# APLICAR sin prompt
 python3 scripts/grok_email_cleaner/limpiar_correos.py --profile sebastian-spam --apply --yes
 ```
 
-Al autenticar, elige **sbsesebeese@gmail.com**. Si te equivocas de cuenta:
+## Política
 
-```bash
-rm scripts/grok_email_cleaner/token.json
-```
-
-## Salida
-
-- `output/grok_email_cleaner.md`
-- `output/grok_email_cleaner.json`
+KEEP: Sebastián / Ilerna / Capgemini / Intelci / gimnasio / estudios / DevOps / TIC  
+DELETE (papelera): el resto del spam
