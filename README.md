@@ -47,6 +47,8 @@ cp .env.example .env   # o crea .env a mano
 
 ```env
 ANTHROPIC_API_KEY=tu_clave_aqui
+XAI_API_KEY=tu_clave_xai          # solo para el bot de correos Grok
+GROK_MODEL=grok-4.3
 ```
 
 > `.env` **nunca** se sube a Git.
@@ -67,6 +69,7 @@ Detalle: [`docs/FLUJO.md`](docs/FLUJO.md).
 | [`agents/agente_1_l3.py`](agents/agente_1_l3.py) | Infra L3, scripts Clean Code / EDR-safe |
 | [`agents/agente_2_devops.py`](agents/agente_2_devops.py) | Lemoncode, Cloud, IaC |
 | [`agents/agente_3_biz.py`](agents/agente_3_biz.py) | ROI, KPIs, narrativa de negocio |
+| [`agents/agente_grok_correo.py`](agents/agente_grok_correo.py) | Grok (xAI): clasifica correos para limpieza Gmail |
 
 ## Casos y laboratorios (`scripts/`)
 
@@ -76,6 +79,7 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 |------|-------------|
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
 | [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
+| [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Grok + Gmail: clasifica y mueve spam/promos a papelera (dry-run por defecto) |
 
 Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
 
@@ -96,6 +100,18 @@ Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PRO
 
 *Cifras de ROI en `memoria.md` son estimaciones de escenario de laboratorio (datos ficticios).*
 
+## Bot Grok: limpiar correos (Gmail)
+
+```bash
+pip install -r requirements.txt
+# Configura XAI_API_KEY en .env y credentials.json de Gmail OAuth
+python scripts/grok_email_cleaner/limpiar_correos.py --demo     # prueba sin Gmail
+python scripts/grok_email_cleaner/limpiar_correos.py            # dry-run real
+python scripts/grok_email_cleaner/limpiar_correos.py --apply    # mueve a papelera
+```
+
+Guía completa: [`scripts/grok_email_cleaner/COMO-PROBAR.md`](scripts/grok_email_cleaner/COMO-PROBAR.md).
+
 ## Estructura del repositorio
 
 ```
@@ -104,13 +120,16 @@ Proyeccion/
 ├── agents/
 │   ├── agente_1_l3.py
 │   ├── agente_2_devops.py
-│   └── agente_3_biz.py
+│   ├── agente_3_biz.py
+│   └── agente_grok_correo.py
 ├── inbox/
 │   └── resumen_diario.md
 ├── output/
 │   └── ultima_ejecucion.md
 ├── scripts/
-│   └── SAP_740/
+│   ├── SAP_740/
+│   ├── IBER/
+│   └── grok_email_cleaner/
 ├── docs/
 │   └── FLUJO.md
 ├── memoria.md
