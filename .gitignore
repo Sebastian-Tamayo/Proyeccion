@@ -17,3 +17,7 @@ scripts/grok_email_cleaner/credentials.json
 scripts/grok_email_cleaner/token.json
 **/credentials.json
 **/token.json
+
+# Informes locales del cleaner
+output/grok_email_cleaner.md
+output/grok_email_cleaner.json
