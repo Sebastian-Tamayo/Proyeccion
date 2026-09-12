@@ -87,7 +87,18 @@ input:focus, select:focus {
   outline: 2px solid rgba(212,175,55,.45); border-color: var(--gold);
 }
 
-.two-cols, .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.two-cols, .two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.1rem;
+}
+
+@media (max-width: 480px) {
+  .two-cols, .two-cols {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
 .chip-row, .chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .chip {
   min-width: 42px; height: 42px; border-radius: 999px;
