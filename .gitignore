@@ -21,3 +21,6 @@ scripts/grok_email_cleaner/token.json
 # Informes locales del cleaner
 output/grok_email_cleaner.md
 output/grok_email_cleaner.json
+
+# Local Netlify folder
+.netlify
