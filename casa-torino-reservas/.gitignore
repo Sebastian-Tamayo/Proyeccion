@@ -29,3 +29,4 @@ data/reservas.json
 *.sln
 *.sw?
 .vercel
+.netlify

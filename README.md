@@ -71,15 +71,22 @@ Detalle: [`docs/FLUJO.md`](docs/FLUJO.md).
 | [`agents/agente_3_biz.py`](agents/agente_3_biz.py) | ROI, KPIs, narrativa de negocio |
 | [`agents/agente_grok_correo.py`](agents/agente_grok_correo.py) | Grok (xAI): clasifica correos para limpieza Gmail |
 
-## Casos y laboratorios (`scripts/`)
+## Casos y laboratorios (`scripts/` + productos)
 
 Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar soluciones pasadas sin salir del proyecto.
 
 | Caso | Descripción |
 |------|-------------|
+| [`casa-torino-reservas/`](casa-torino-reservas/) | **Producto real:** reservas mobile-first para negocio familiar (extensión de web + ERP). Demo: [reservas-casatorino.netlify.app](https://reservas-casatorino.netlify.app) |
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
 | [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
 | [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Gmail: vaciar buzón o limpieza selectiva (dry-run por defecto) |
+
+### Destacado para reclutadores — Casa Torino Reservas
+
+Producto desplegado en producción para un bar-restaurante familiar en Gijón. Extiende la [web pública](https://casatorino.netlify.app) y se alinea con el ERP/operativa interna ya existente: captura de reservas en sala, edición en caliente y lista compartida por el equipo.
+
+→ Documentación de portfolio: [`casa-torino-reservas/README.md`](casa-torino-reservas/README.md)
 
 Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
 
@@ -96,6 +103,7 @@ Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PRO
 | Playbook MFA: desasignar en consola ≠ borrar usuario AD | Evita cascadas de SID/buzón/compliance |
 | `Deploy-SAP740.ps1` EDR-safe | Sin PInvoke/kernel32 ni `cmd` ofuscado; menos falsos positivos SOC |
 | Ejecución desde lápiz USB | Menor lead time de provisión (sin pegar a `C:\Deploy`) |
+| **Casa Torino Reservas (prod)** | Producto real: React/TS + Netlify Functions/Blobs; extensión web + ERP familiar |
 | Memoria y docs anonimizados | Repo publicable sin filtrar datos personales/corporativos |
 
 *Cifras de ROI en `memoria.md` son estimaciones de escenario de laboratorio (datos ficticios).*
@@ -119,24 +127,16 @@ Guía: [`scripts/grok_email_cleaner/COMO-PROBAR.md`](scripts/grok_email_cleaner/
 Proyeccion/
 ├── main.py
 ├── agents/
-│   ├── agente_1_l3.py
-│   ├── agente_2_devops.py
-│   ├── agente_3_biz.py
-│   └── agente_grok_correo.py
+├── casa-torino-reservas/     # Producto: reservas Casa Torino (web + ERP extension)
 ├── inbox/
-│   └── resumen_diario.md
 ├── output/
-│   └── ultima_ejecucion.md
 ├── scripts/
 │   ├── SAP_740/
 │   ├── IBER/
 │   └── grok_email_cleaner/
 ├── docs/
-│   └── FLUJO.md
 ├── memoria.md
 ├── requirements.txt
-├── .env.example
-├── .gitignore
 └── README.md
 ```
 

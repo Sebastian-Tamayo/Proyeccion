@@ -10,10 +10,9 @@ export const BUSINESS = {
 } as const
 
 /**
- * API propia en Netlify (estable).
- * En local/dev sin funciones, se puede apuntar a un fallback.
+ * API en Netlify (Blobs). El frontend puede estar en Vercel/Netlify.
  */
-export const ONLINE_API_BASE = '/api/reservas'
+export const ONLINE_API_BASE = 'https://reservas-casatorino.netlify.app/api/reservas'
 
 /** 4 personas del equipo. PIN por defecto 1234. */
 export const STAFF = [
