@@ -1,5 +1,9 @@
 # Casa Torino — Reservas (extensión operativa)
 
+> Módulo del monorepo **[CasaTorinoApp](https://github.com/Sebastian-Tamayo/CasaTorinoApp)**  
+> Ecosistema: Web pública · ERP/back-office · Reservas de sala.
+
+
 > **Caso real · negocio familiar · Gijón**  
 > Módulo de reservas para el personal de **Casa Torino**, pensado como **extensión** de la web pública ya publicada y del ERP / operativa interna del negocio.
 
@@ -174,7 +178,7 @@ Opcional: variable de entorno `RESERVAS_STORE_URL` para el endpoint de persisten
 
 ## Autor
 
-**Sebastián Olaya Tamayo** — caso dentro del monorepo [`Proyeccion`](https://github.com/Sebastian-Tamayo/Proyeccion): transición L3 → DevOps/Cloud → producto/negocio.
+**Sebastián Olaya Tamayo** — módulo del ecosistema [`CasaTorinoApp`](https://github.com/Sebastian-Tamayo/CasaTorinoApp): transición L3 → DevOps/Cloud → producto/negocio.
 
 ---
 
@@ -182,6 +186,3 @@ Opcional: variable de entorno `RESERVAS_STORE_URL` para el endpoint de persisten
 
 Proyecto de portfolio y uso interno del negocio familiar Casa Torino.  
 No redistribuir credenciales de producción.
-
-> **Ubicación canónica del ecosistema:** [`../casa-torino/`](../casa-torino/) → destino GitHub [CasaTorinoApp](https://github.com/Sebastian-Tamayo/CasaTorinoApp).
-

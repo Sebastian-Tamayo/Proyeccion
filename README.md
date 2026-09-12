@@ -23,6 +23,24 @@ inbox/resumen_diario.md
  L3              DevOps          Negocio / Big Data / IA
  (Claude)        (Claude)        (Claude)
         │
+
+
+## Ecosistema Casa Torino (unificado)
+
+> **Fuente de verdad del producto conjunto:** carpeta [`casa-torino/`](casa-torino/) en este monorepo.  
+> Destino público deseado: https://github.com/Sebastian-Tamayo/CasaTorinoApp
+
+| Módulo | Carpeta | Live |
+|--------|---------|------|
+| Web pública | [`casa-torino/web/`](casa-torino/web/) | [casatorino.netlify.app](https://casatorino.netlify.app) |
+| Reservas (sala) | [`casa-torino/reservas/`](casa-torino/reservas/) | [reservas-casatorino.vercel.app](https://reservas-casatorino.vercel.app) |
+| ERP / back-office | [`casa-torino/erp/`](casa-torino/erp/) | Next.js + Supabase |
+
+Capturas y GIFs conservados en [`casa-torino/docs/media/`](casa-torino/docs/media/).  
+README general del ecosistema: [`casa-torino/README.md`](casa-torino/README.md).
+
+> Nota: el push directo a `CasaTorinoApp` desde este agente devolvió **403** (el token solo escribe en `Proyeccion`). Para publicar allí desde tu PC, ver [`docs/PUBLICAR-CASATORINO-APP.md`](docs/PUBLICAR-CASATORINO-APP.md).
+
         ▼
 output/ultima_ejecucion.md
 ```
