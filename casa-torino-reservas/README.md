@@ -129,7 +129,7 @@ casa-torino-reservas/
 └── README.md              # Este documento
 ```
 
-Más detalle: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) · [`docs/PRODUCTO.md`](docs/PRODUCTO.md)
+Más detalle: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) · [`docs/PRODUCTO.md`](docs/PRODUCTO.md) · [`docs/DEPLOY.md`](docs/DEPLOY.md)
 
 ---
 
