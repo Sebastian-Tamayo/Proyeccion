@@ -19,6 +19,7 @@ Personal de sala/cocina (4 perfiles configurables). No es un portal de cliente f
 
 ## Relación con otros sistemas
 - **Web** ([casatorino.netlify.app](https://casatorino.netlify.app)): captación y marca.  
+- **App reservas (prod):** [reservas-casatorino.vercel.app](https://reservas-casatorino.vercel.app)  
 - **ERP familiar**: continuidad operativa; este módulo aporta la capa de **ocupación/reservas** de forma ligera.
 
 ## Roadmap posible

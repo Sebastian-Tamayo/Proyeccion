@@ -77,7 +77,7 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 
 | Caso | Descripción |
 |------|-------------|
-| [`casa-torino-reservas/`](casa-torino-reservas/) | **Producto real:** reservas mobile-first para negocio familiar (extensión de web + ERP). Hosting: **Vercel** (migrado desde Netlify) |
+| [`casa-torino-reservas/`](casa-torino-reservas/) | **Producto real:** reservas mobile-first para negocio familiar (extensión de web + ERP). Demo: [reservas-casatorino.vercel.app](https://reservas-casatorino.vercel.app) |
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
 | [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
 | [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Gmail: vaciar buzón o limpieza selectiva (dry-run por defecto) |
@@ -86,7 +86,7 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 
 Producto desplegado en producción para un bar-restaurante familiar en Gijón. Extiende la [web pública](https://casatorino.netlify.app) y se alinea con el ERP/operativa interna ya existente: captura de reservas en sala, edición en caliente y lista compartida por el equipo.
 
-→ Documentación de portfolio: [`casa-torino-reservas/README.md`](casa-torino-reservas/README.md)
+→ **Live:** [reservas-casatorino.vercel.app](https://reservas-casatorino.vercel.app) · Docs: [`casa-torino-reservas/README.md`](casa-torino-reservas/README.md)
 
 Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
 

@@ -1,32 +1,30 @@
 # Deploy — Casa Torino Reservas (Vercel)
 
-Netlify ya no acepta deploys (créditos agotados). Producción va en **Vercel**.
+Producción permanente en Vercel (migrado desde Netlify por límite de créditos).
 
-## URL actual (deploy anónimo)
+## URL de producción
 
-- App: https://temporary-zippy-poplar-0bmrs89.vercel.app  
-- Claim (permanente): https://vercel.com/claim-deployment?code=2328de0e-4efd-4fea-b4bc-e3729476e34f  
+**https://reservas-casatorino.vercel.app**
 
-El deploy anónimo **caduca en ~60 minutos** si no se reclama o no hay `vercel login` + `--prod`.
+Proyecto Vercel: `reservas-casatorino`  
+API: `GET/POST /api/reservas` · `PUT /api/reservas/:id`
 
-## Una vez (login)
-
-```bash
-cd casa-torino-reservas
-npx vercel login
-```
-
-Abre el enlace device que imprime la CLI y confirma en el navegador.
-
-## Producción permanente
+## Redeploy / actualizar
 
 ```bash
 cd casa-torino-reservas
+npm install
 npm run build
+npx vercel login          # solo la primera vez en esa máquina
 npx vercel --prod
 ```
 
 Root del proyecto en Vercel: carpeta `casa-torino-reservas` (no la raíz del monorepo).
+
+## Dominio
+
+- Dominio actual: `reservas-casatorino.vercel.app`
+- Para cambiarlo: Vercel → proyecto → **Settings → Domains** (o renombrar el Project Name en **Settings → General**)
 
 ## Variables opcionales
 

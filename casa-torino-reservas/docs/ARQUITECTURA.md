@@ -41,4 +41,5 @@
 ## Deploy
 - Build: `npm run build` → `dist/`  
 - Hosting + functions: Vercel (`vercel.json`)  
-- SPA rewrite: rutas de app → `index.html` sin tragar `/api/*`
+- SPA rewrite: rutas de app → `index.html` sin tragar `/api/*`  
+- Producción: https://reservas-casatorino.vercel.app
