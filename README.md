@@ -24,38 +24,6 @@ inbox/resumen_diario.md
  (Claude)        (Claude)        (Claude)
         │
 
-
-## Ecosistema Casa Torino (unificado)
-
-> **Destino definitivo:** https://github.com/Sebastian-Tamayo/CasaTorinoApp  
-> La carpeta [`casa-torino/`](casa-torino/) aquí es **solo tránsito** hasta que Cursor tenga permiso de push en ese repo (o lo publiques con el script). Ver [`docs/PUBLICAR-CASATORINO-APP.md`](docs/PUBLICAR-CASATORINO-APP.md).
-
-| Módulo | Carpeta | Live |
-|--------|---------|------|
-| Web pública | [`casa-torino/web/`](casa-torino/web/) | [casatorino.netlify.app](https://casatorino.netlify.app) |
-| Reservas (sala) | [`casa-torino/reservas/`](casa-torino/reservas/) | [reservas-casatorino.vercel.app](https://reservas-casatorino.vercel.app) |
-| ERP / back-office | [`casa-torino/erp/`](casa-torino/erp/) | Next.js + Supabase |
-
-Capturas y GIFs conservados en [`casa-torino/docs/media/`](casa-torino/docs/media/).  
-README general del ecosistema: [`casa-torino/README.md`](casa-torino/README.md).
-
-> Nota: el push directo a `CasaTorinoApp` desde este agente devolvió **403** (el token solo escribe en `Proyeccion`). Para publicar allí desde tu PC, ver [`docs/PUBLICAR-CASATORINO-APP.md`](docs/PUBLICAR-CASATORINO-APP.md).
-
-        ▼
-output/ultima_ejecucion.md
-```
-
-| Pieza | Rol |
-|--------|-----|
-| **Gemini** | Libreta diaria (fuera del repo). |
-| **`inbox/`** | Entrada del día: pega aquí el resumen. |
-| **`memoria.md`** | Historial a largo plazo (anonimizado). |
-| **`main.py`** | Orquesta las 3 llamadas en paralelo. |
-| **`agents/`** | System prompts XML + clientes Anthropic. |
-| **`scripts/`** | Casos reales / laboratorios (artefactos). |
-| **`output/`** | Última respuesta de los agentes. |
-| **`docs/`** | Guías cortas de flujo. |
-
 ## Configuración local
 
 ```bash
@@ -95,16 +63,9 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 
 | Caso | Descripción |
 |------|-------------|
-| [`casa-torino-reservas/`](casa-torino-reservas/) | **Producto real:** reservas mobile-first para negocio familiar (extensión de web + ERP). Demo: [reservas-casatorino.vercel.app](https://reservas-casatorino.vercel.app) |
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
 | [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
 | [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Gmail: vaciar buzón o limpieza selectiva (dry-run por defecto) |
-
-### Destacado para reclutadores — Casa Torino Reservas
-
-Producto desplegado en producción para un bar-restaurante familiar en Gijón. Extiende la [web pública](https://casatorino.netlify.app) y se alinea con el ERP/operativa interna ya existente: captura de reservas en sala, edición en caliente y lista compartida por el equipo.
-
-→ **Live:** [reservas-casatorino.vercel.app](https://reservas-casatorino.vercel.app) · Docs: [`casa-torino-reservas/README.md`](casa-torino-reservas/README.md)
 
 Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
 
@@ -121,7 +82,6 @@ Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PRO
 | Playbook MFA: desasignar en consola ≠ borrar usuario AD | Evita cascadas de SID/buzón/compliance |
 | `Deploy-SAP740.ps1` EDR-safe | Sin PInvoke/kernel32 ni `cmd` ofuscado; menos falsos positivos SOC |
 | Ejecución desde lápiz USB | Menor lead time de provisión (sin pegar a `C:\Deploy`) |
-| **Casa Torino Reservas (prod)** | Producto real: React/TS + Vercel Serverless; extensión web + ERP familiar |
 | Memoria y docs anonimizados | Repo publicable sin filtrar datos personales/corporativos |
 
 *Cifras de ROI en `memoria.md` son estimaciones de escenario de laboratorio (datos ficticios).*
@@ -145,7 +105,6 @@ Guía: [`scripts/grok_email_cleaner/COMO-PROBAR.md`](scripts/grok_email_cleaner/
 Proyeccion/
 ├── main.py
 ├── agents/
-├── casa-torino-reservas/     # Producto: reservas Casa Torino (web + ERP extension)
 ├── inbox/
 ├── output/
 ├── scripts/
