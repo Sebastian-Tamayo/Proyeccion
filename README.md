@@ -27,8 +27,8 @@ inbox/resumen_diario.md
 
 ## Ecosistema Casa Torino (unificado)
 
-> **Fuente de verdad del producto conjunto:** carpeta [`casa-torino/`](casa-torino/) en este monorepo.  
-> Destino público deseado: https://github.com/Sebastian-Tamayo/CasaTorinoApp
+> **Destino definitivo:** https://github.com/Sebastian-Tamayo/CasaTorinoApp  
+> La carpeta [`casa-torino/`](casa-torino/) aquí es **solo tránsito** hasta que Cursor tenga permiso de push en ese repo (o lo publiques con el script). Ver [`docs/PUBLICAR-CASATORINO-APP.md`](docs/PUBLICAR-CASATORINO-APP.md).
 
 | Módulo | Carpeta | Live |
 |--------|---------|------|
