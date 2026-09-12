@@ -1,10 +1,10 @@
 import type { Reservation } from '../types'
 
-const KEY = 'casa-torino-reservas-v1'
+export const STORAGE_KEY = 'casa-torino-reservas-v2'
 
 export function loadLocalReservations(): Reservation[] {
   try {
-    const raw = localStorage.getItem(KEY)
+    const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw) as Reservation[]
     return Array.isArray(parsed) ? parsed : []
@@ -13,27 +13,19 @@ export function loadLocalReservations(): Reservation[] {
   }
 }
 
-export function saveLocalReservations(items: Reservation[]) {
-  localStorage.setItem(KEY, JSON.stringify(items))
-}
-
 export function upsertLocalReservation(item: Reservation) {
   const all = loadLocalReservations()
   const idx = all.findIndex((r) => r.id === item.id)
   if (idx >= 0) all[idx] = item
   else all.unshift(item)
-  saveLocalReservations(all)
-  return all
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(all))
 }
 
 export function generateCodigo(): string {
-  const n = Math.floor(1000 + Math.random() * 9000)
-  return `CT-${n}`
+  return `CT-${Math.floor(1000 + Math.random() * 9000)}`
 }
 
 export function generateId(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID()
-  }
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
   return `id-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }

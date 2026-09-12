@@ -38,7 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(u)
       setLoading(false)
     })
-    // Si no hay Firebase ni demo, termina loading
     const t = window.setTimeout(() => setLoading(false), 400)
     return () => {
       unsub()
@@ -50,16 +49,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const staff = await loginWithGoogle()
     if (!staff.isAdmin) {
       await logoutStaff()
-      throw new Error(
-        'Esta cuenta de Google no está autorizada como personal de Casa Torino. Pide que añadan tu email en ADMIN_EMAILS.',
-      )
+      throw new Error('Cuenta no autorizada. Añade tu Gmail en ADMIN_EMAILS.')
     }
     setUser(staff)
   }, [])
 
-  const loginDemo = useCallback(() => {
-    setUser(loginDemoStaff())
-  }, [])
+  const loginDemo = useCallback(() => setUser(loginDemoStaff()), [])
 
   const logout = useCallback(async () => {
     await logoutStaff()

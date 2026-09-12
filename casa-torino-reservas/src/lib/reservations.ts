@@ -1,11 +1,4 @@
-import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  type User,
-} from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
 import {
   addDoc,
   collection,
@@ -14,26 +7,25 @@ import {
   orderBy,
   query,
   updateDoc,
-  type Unsubscribe,
 } from 'firebase/firestore'
 import { ADMIN_EMAILS } from '../config'
 import type { Reservation, ReservationStatus, StaffUser } from '../types'
 import { auth, db, googleProvider, isFirebaseConfigured } from './firebase'
 import {
+  STORAGE_KEY,
   generateCodigo,
   generateId,
   loadLocalReservations,
   upsertLocalReservation,
 } from './storage'
 
-const DEMO_USER_KEY = 'casa-torino-demo-staff'
+const DEMO_KEY = 'casa-torino-demo-staff'
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false
-  const normalized = email.trim().toLowerCase()
-  // En modo demo, cualquier sesión demo es admin
-  if (normalized.endsWith('@casatorino.es')) return true
-  return ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(normalized)
+  const n = email.trim().toLowerCase()
+  if (n.endsWith('@casatorino.es')) return true
+  return ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(n)
 }
 
 export function toStaffUser(user: User): StaffUser {
@@ -48,19 +40,13 @@ export function toStaffUser(user: User): StaffUser {
 
 export function getDemoStaff(): StaffUser | null {
   try {
-    const raw = localStorage.getItem(DEMO_USER_KEY)
+    const raw = localStorage.getItem(DEMO_KEY)
     return raw ? (JSON.parse(raw) as StaffUser) : null
   } catch {
     return null
   }
 }
 
-export function setDemoStaff(user: StaffUser | null) {
-  if (!user) localStorage.removeItem(DEMO_USER_KEY)
-  else localStorage.setItem(DEMO_USER_KEY, JSON.stringify(user))
-}
-
-/** Entrar como personal en modo demo (sin Firebase). */
 export function loginDemoStaff(): StaffUser {
   const user: StaffUser = {
     uid: 'demo-staff',
@@ -68,47 +54,42 @@ export function loginDemoStaff(): StaffUser {
     displayName: 'Personal Casa Torino',
     isAdmin: true,
   }
-  setDemoStaff(user)
+  localStorage.setItem(DEMO_KEY, JSON.stringify(user))
   return user
-}
-
-export function logoutDemoStaff() {
-  setDemoStaff(null)
 }
 
 export async function loginWithGoogle(): Promise<StaffUser> {
   if (!isFirebaseConfigured || !auth || !googleProvider) {
-    throw new Error('Firebase no configurado. Usa el modo demo o añade las claves en .env')
+    throw new Error('Firebase no configurado. Usa el modo demo.')
   }
   const result = await signInWithPopup(auth, googleProvider)
   return toStaffUser(result.user)
 }
 
 export async function logoutStaff() {
-  logoutDemoStaff()
+  localStorage.removeItem(DEMO_KEY)
   if (auth) await signOut(auth)
 }
 
-export function watchAuth(callback: (user: StaffUser | null) => void): () => void {
-  // Demo primero
+export function watchAuth(cb: (user: StaffUser | null) => void): () => void {
   const demo = getDemoStaff()
-  if (demo) callback(demo)
-
-  if (!isFirebaseConfigured || !auth) {
-    return () => undefined
-  }
-
-  const unsub = onAuthStateChanged(auth, (user) => {
-    if (user) callback(toStaffUser(user))
-    else if (!getDemoStaff()) callback(null)
+  if (demo) cb(demo)
+  if (!isFirebaseConfigured || !auth) return () => undefined
+  return onAuthStateChanged(auth, (user) => {
+    if (user) cb(toStaffUser(user))
+    else if (!getDemoStaff()) cb(null)
   })
-  return unsub
 }
 
-export type NewReservationInput = Omit<
-  Reservation,
-  'id' | 'codigo' | 'estado' | 'createdAt' | 'updatedAt' | 'origen' | 'mesaAsignada' | 'notasInternas'
->
+export type NewReservationInput = {
+  nombre: string
+  telefono: string
+  fecha: string
+  hora: string
+  personas: number
+  notas: string
+  creadoPor: string
+}
 
 export async function createReservation(input: NewReservationInput): Promise<Reservation> {
   const now = new Date().toISOString()
@@ -116,14 +97,13 @@ export async function createReservation(input: NewReservationInput): Promise<Res
     ...input,
     id: generateId(),
     codigo: generateCodigo(),
-    estado: 'pendiente',
+    estado: 'confirmada',
     createdAt: now,
     updatedAt: now,
-    origen: 'web',
   }
 
   if (isFirebaseConfigured && db) {
-    const { id: _ignore, ...payload } = base
+    const { id: _id, ...payload } = base
     const ref = await addDoc(collection(db, 'reservas'), payload)
     return { ...base, id: ref.id }
   }
@@ -134,38 +114,33 @@ export async function createReservation(input: NewReservationInput): Promise<Res
 
 export async function updateReservationStatus(
   id: string,
-  patch: Partial<Pick<Reservation, 'estado' | 'mesaAsignada' | 'notasInternas'>>,
+  patch: Partial<Pick<Reservation, 'estado' | 'notas'>>,
 ): Promise<void> {
   const updatedAt = new Date().toISOString()
-
   if (isFirebaseConfigured && db) {
     await updateDoc(doc(db, 'reservas', id), { ...patch, updatedAt })
     return
   }
-
-  const all = loadLocalReservations()
-  const found = all.find((r) => r.id === id)
+  const found = loadLocalReservations().find((r) => r.id === id)
   if (!found) throw new Error('Reserva no encontrada')
   upsertLocalReservation({ ...found, ...patch, updatedAt })
 }
 
-export function watchReservations(callback: (items: Reservation[]) => void): Unsubscribe | (() => void) {
+export function watchReservations(cb: (items: Reservation[]) => void): () => void {
   if (isFirebaseConfigured && db) {
     const q = query(collection(db, 'reservas'), orderBy('createdAt', 'desc'))
     return onSnapshot(q, (snap) => {
-      const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Reservation, 'id'>) }))
-      callback(items)
+      cb(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Reservation, 'id'>) })))
     })
   }
 
-  const emit = () => callback(loadLocalReservations())
+  const emit = () => cb(loadLocalReservations())
   emit()
   const onStorage = (e: StorageEvent) => {
-    if (e.key === 'casa-torino-reservas-v1') emit()
+    if (e.key === STORAGE_KEY) emit()
   }
   window.addEventListener('storage', onStorage)
-  // Poll ligero para misma pestaña tras formularios
-  const interval = window.setInterval(emit, 2000)
+  const interval = window.setInterval(emit, 1500)
   return () => {
     window.removeEventListener('storage', onStorage)
     window.clearInterval(interval)
@@ -174,58 +149,23 @@ export function watchReservations(callback: (items: Reservation[]) => void): Uns
 
 export function seedDemoIfEmpty() {
   if (isFirebaseConfigured) return
-  const current = loadLocalReservations()
-  if (current.length > 0) return
-
+  if (loadLocalReservations().length > 0) return
   const today = new Date()
-  const yyyy = today.toISOString().slice(0, 10)
-  const samples: Reservation[] = [
-    {
-      id: generateId(),
-      codigo: 'CT-2025',
-      nombre: 'María Fernández',
-      telefono: '612111222',
-      email: 'maria@email.com',
-      fecha: yyyy,
-      hora: '14:00',
-      personas: 4,
-      zona: 'interior',
-      ocasion: 'familia',
-      notas: 'Niño en trona si es posible',
-      estado: 'pendiente' as ReservationStatus,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      origen: 'web',
-    },
-    {
-      id: generateId(),
-      codigo: 'CT-2026',
-      nombre: 'Carlos Ruiz',
-      telefono: '655444333',
-      email: 'carlos@email.com',
-      fecha: yyyy,
-      hora: '21:00',
-      personas: 2,
-      zona: 'barra',
-      ocasion: 'cita',
-      notas: '',
-      estado: 'confirmada' as ReservationStatus,
-      mesaAsignada: 'Mesa 3',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      origen: 'web',
-    },
-  ]
-  samples.forEach(upsertLocalReservation)
-}
-
-// Helpers opcionales si más adelante quieren email/password además de Google
-export async function registerEmail(email: string, password: string) {
-  if (!auth) throw new Error('Firebase no configurado')
-  return createUserWithEmailAndPassword(auth, email, password)
-}
-
-export async function loginEmail(email: string, password: string) {
-  if (!auth) throw new Error('Firebase no configurado')
-  return signInWithEmailAndPassword(auth, email, password)
+  const yyyy = new Date(today.getTime() - today.getTimezoneOffset() * 60_000)
+    .toISOString()
+    .slice(0, 10)
+  upsertLocalReservation({
+    id: generateId(),
+    codigo: 'CT-1001',
+    nombre: 'María',
+    telefono: '612111222',
+    fecha: yyyy,
+    hora: '14:00',
+    personas: 4,
+    notas: '',
+    estado: 'confirmada' as ReservationStatus,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    creadoPor: 'demo@casatorino.es',
+  })
 }
