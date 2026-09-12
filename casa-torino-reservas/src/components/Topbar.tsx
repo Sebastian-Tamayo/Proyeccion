@@ -10,11 +10,11 @@ export function Topbar() {
         <img src="/logo.jpg" alt="Casa Torino" />
         <div>
           <strong>{BUSINESS.name}</strong>
-          <span>Reservas internas</span>
+          <span>Local · 4 personas</span>
         </div>
       </div>
-      {user?.isAdmin && (
-        <button className="btn btn-ghost" type="button" onClick={() => void logout()}>
+      {user && (
+        <button className="btn btn-ghost" type="button" onClick={logout}>
           Salir
         </button>
       )}

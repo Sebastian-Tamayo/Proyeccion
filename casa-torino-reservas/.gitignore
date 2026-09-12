@@ -15,6 +15,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Datos locales del bar (se regeneran solos)
+data/reservas.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth'
 import { BUSINESS, HORAS_RAPIDAS, STATUS_LABELS } from '../config'
-import { isFirebaseConfigured } from '../lib/firebase'
 import {
   createReservation,
+  fetchStaffDirectory,
+  listReservations,
   updateReservationStatus,
-  watchReservations,
-} from '../lib/reservations'
-import type { Reservation, ReservationStatus } from '../types'
+} from '../lib/api'
+import type { Reservation, ReservationStatus, StaffUser } from '../types'
 
 function todayISO() {
   const d = new Date()
@@ -28,7 +28,10 @@ function nearestHour() {
 }
 
 export function StaffPage() {
-  const { user, loading, firebaseReady, loginGoogle, loginDemo } = useAuth()
+  const { user, loading, login } = useAuth()
+  const [directory, setDirectory] = useState<StaffUser[]>([])
+  const [staffId, setStaffId] = useState('lorena')
+  const [pin, setPin] = useState('')
   const [items, setItems] = useState<Reservation[]>([])
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
@@ -42,8 +45,27 @@ export function StaffPage() {
   const [soloHoy, setSoloHoy] = useState(true)
 
   useEffect(() => {
-    if (!user?.isAdmin) return
-    return watchReservations(setItems)
+    void fetchStaffDirectory()
+      .then((list) => {
+        setDirectory(list)
+        if (list[0]) setStaffId(list[0].id)
+      })
+      .catch(() => setError('No hay servidor local. En el PC: npm run local'))
+  }, [])
+
+  async function refresh() {
+    setItems(await listReservations())
+  }
+
+  useEffect(() => {
+    if (!user) return
+    void refresh().catch((err: unknown) =>
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar reservas'),
+    )
+    const t = window.setInterval(() => {
+      void refresh().catch(() => undefined)
+    }, 2500)
+    return () => window.clearInterval(t)
   }, [user])
 
   const lista = useMemo(() => {
@@ -53,6 +75,17 @@ export function StaffPage() {
       .filter((r) => r.estado !== 'cancelada')
       .sort((a, b) => `${a.fecha}${a.hora}`.localeCompare(`${b.fecha}${b.hora}`))
   }, [items, soloHoy])
+
+  async function onLogin(e: FormEvent) {
+    e.preventDefault()
+    setError(null)
+    try {
+      await login(staffId, pin)
+      setPin('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo entrar')
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -70,7 +103,7 @@ export function StaffPage() {
         hora,
         personas,
         notas: notas.trim(),
-        creadoPor: user?.email ?? 'personal',
+        creadoPor: user?.name ?? 'personal',
       })
       setFlash(`✓ ${r.codigo} · ${r.nombre} · ${r.personas}p · ${r.hora}`)
       setNombre('')
@@ -79,9 +112,7 @@ export function StaffPage() {
       setPersonas(2)
       setHora(nearestHour())
       setFecha(todayISO())
-      if (!isFirebaseConfigured) {
-        setItems((prev) => [r, ...prev.filter((x) => x.id !== r.id)])
-      }
+      await refresh()
       window.setTimeout(() => setFlash(null), 3000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar')
@@ -92,11 +123,7 @@ export function StaffPage() {
 
   async function setEstado(id: string, estado: ReservationStatus) {
     await updateReservationStatus(id, { estado })
-    if (!isFirebaseConfigured) {
-      setItems((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, estado, updatedAt: new Date().toISOString() } : r)),
-      )
-    }
+    await refresh()
   }
 
   if (loading) {
@@ -107,42 +134,44 @@ export function StaffPage() {
     )
   }
 
-  if (!user?.isAdmin) {
+  if (!user) {
     return (
       <main className="page">
         <div className="card login-box">
           <img src="/logo.jpg" alt="Casa Torino" />
-          <h1>Reservas</h1>
-          <p className="muted">Solo personal. Anota la mesa cuando alguien se acerque a reservar.</p>
+          <h1>Reservas locales</h1>
+          <p className="muted">Solo personal · 4 personas · sin publicar</p>
           {error && <div className="alert alert-error">{error}</div>}
-          {!firebaseReady && (
-            <div className="alert alert-info">Demo lista: entra y prueba el alta rápida.</div>
-          )}
-          <div className="stack">
-            {firebaseReady ? (
-              <button
-                className="btn btn-gold btn-lg"
-                type="button"
-                onClick={() => {
-                  setError(null)
-                  void loginGoogle().catch((err: unknown) =>
-                    setError(err instanceof Error ? err.message : 'Error de Google'),
-                  )
-                }}
-              >
-                Entrar con Google
-              </button>
-            ) : (
-              <button className="btn btn-gold btn-lg" type="button" onClick={loginDemo}>
-                Entrar
-              </button>
-            )}
-            {firebaseReady && (
-              <button className="btn btn-outline" type="button" onClick={loginDemo}>
-                Probar demo
-              </button>
-            )}
-          </div>
+          <form className="quick-form" onSubmit={(e) => void onLogin(e)}>
+            <label>
+              Quién eres
+              <select value={staffId} onChange={(e) => setStaffId(e.target.value)}>
+                {directory.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              PIN
+              <input
+                type="password"
+                inputMode="numeric"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="1234"
+                autoComplete="current-password"
+                required
+              />
+            </label>
+            <button className="btn btn-gold btn-lg" type="submit">
+              Entrar
+            </button>
+          </form>
+          <p className="muted small" style={{ marginTop: '0.75rem' }}>
+            PIN por defecto: 1234
+          </p>
         </div>
       </main>
     )
@@ -154,7 +183,7 @@ export function StaffPage() {
         <div className="section-head">
           <div>
             <h1>Nueva reserva</h1>
-            <p className="muted">Rápido · {user.displayName}</p>
+            <p className="muted">Rápido · {user.name}</p>
           </div>
         </div>
 
@@ -241,7 +270,7 @@ export function StaffPage() {
         </form>
       </section>
 
-      <section className="card list-card">
+      <section className="card">
         <div className="section-head">
           <h2>{soloHoy ? 'Hoy' : 'Todas'}</h2>
           <button className="btn btn-ghost" type="button" onClick={() => setSoloHoy((v) => !v)}>
@@ -254,7 +283,7 @@ export function StaffPage() {
         <ul className="res-list">
           {lista.map((r) => (
             <li key={r.id} className="res-item">
-              <div className="res-main">
+              <div>
                 <div className="res-title">
                   <b>{r.hora}</b> · {r.nombre} · {r.personas}p
                 </div>
@@ -262,6 +291,7 @@ export function StaffPage() {
                   {r.codigo}
                   {r.telefono ? ` · ${r.telefono}` : ''}
                   {r.notas ? ` · ${r.notas}` : ''}
+                  {r.creadoPor ? ` · por ${r.creadoPor}` : ''}
                   {' · '}
                   <span className={`badge badge-${r.estado}`}>{STATUS_LABELS[r.estado]}</span>
                 </div>
@@ -269,25 +299,13 @@ export function StaffPage() {
               <div className="row-actions">
                 {r.estado === 'confirmada' && (
                   <>
-                    <button
-                      className="btn btn-ok"
-                      type="button"
-                      onClick={() => void setEstado(r.id, 'completada')}
-                    >
+                    <button className="btn btn-ok" type="button" onClick={() => void setEstado(r.id, 'completada')}>
                       Hecha
                     </button>
-                    <button
-                      className="btn btn-ghost"
-                      type="button"
-                      onClick={() => void setEstado(r.id, 'no_show')}
-                    >
+                    <button className="btn btn-ghost" type="button" onClick={() => void setEstado(r.id, 'no_show')}>
                       No vino
                     </button>
-                    <button
-                      className="btn btn-danger"
-                      type="button"
-                      onClick={() => void setEstado(r.id, 'cancelada')}
-                    >
+                    <button className="btn btn-danger" type="button" onClick={() => void setEstado(r.id, 'cancelada')}>
                       Anular
                     </button>
                   </>
@@ -309,7 +327,7 @@ export function StaffPage() {
       </section>
 
       <p className="footer-mini">
-        {BUSINESS.name} · {BUSINESS.address}
+        {BUSINESS.name} · Local · {BUSINESS.address}
       </p>
     </main>
   )

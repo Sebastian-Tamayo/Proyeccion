@@ -1,28 +1,42 @@
-# Casa Torino — Reservas internas (rápidas)
+# Casa Torino — Reservas LOCALES (4 personas)
 
-Herramienta para el **personal** del bar: cuando un cliente se acerca a reservar, se anota en segundos.
+App **solo local**, sin publicar en internet. Pensada para el personal del bar
+cuando un cliente se acerca a reservar.
 
-## Campos (mínimos)
-- Nombre *
-- Teléfono (opcional)
-- Personas (botones 1–8 / 9+)
-- Día + Hora
-- Nota (opcional)
+## Personal (4)
+| Persona   | PIN por defecto |
+|-----------|-----------------|
+| Lorena    | 1234            |
+| Yuli      | 1234            |
+| Dayana    | 1234            |
+| Claribel  | 1234            |
 
-La reserva se guarda ya **confirmada**. Debajo ves la lista del día (Hecha / No vino / Anular / WhatsApp).
+Cambia los PIN en `server/staff.json`.
 
-## Uso local
+## Arranque en el PC del bar
+
 ```bash
 cd casa-torino-reservas
 npm install
+npm run build
+npm run local
+```
+
+En la terminal verás:
+- `http://127.0.0.1:8787` (el PC)
+- `http://192.168.x.x:8787` (móviles en la **misma WiFi**)
+
+Los 4 móviles/tablets usan esa IP. Los datos se guardan en `data/reservas.json` (compartidos).
+
+## Desarrollo
+
+```bash
+# terminal 1
+npm run local
+
+# terminal 2
 npm run dev
 ```
-Entra con **Entrar** (demo) o Google si configuras Firebase.
 
-## Auth
-Una sola plataforma: **Google** (opcional). Sin claves → modo demo local.
-
-Copia `.env.example` → `.env` y añade los Gmail del equipo en `src/config.ts` (`ADMIN_EMAILS`).
-
-## Deploy Netlify
-`npm run build` · publish `dist` · `netlify.toml` incluido.
+## Campos rápidos
+Nombre · Teléfono (opc.) · Personas · Día · Hora · Nota (opc.)

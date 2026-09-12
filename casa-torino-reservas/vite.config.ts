@@ -1,15 +1,20 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  preview: {
-    host: true,
-    allowedHosts: true,
-  },
   server: {
     host: true,
-    allowedHosts: true,
+    port: 5173,
+    proxy: {
+      '/api': 'http://127.0.0.1:8787',
+    },
+  },
+  preview: {
+    host: true,
+    port: 4173,
+    proxy: {
+      '/api': 'http://127.0.0.1:8787',
+    },
   },
 })

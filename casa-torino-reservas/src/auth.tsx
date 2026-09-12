@@ -7,72 +7,50 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { isFirebaseConfigured } from './lib/firebase'
-import {
-  loginDemoStaff,
-  loginWithGoogle,
-  logoutStaff,
-  seedDemoIfEmpty,
-  watchAuth,
-} from './lib/reservations'
+import { loginLocal } from './lib/api'
 import type { StaffUser } from './types'
+
+const SESSION_KEY = 'casa-torino-local-staff'
 
 interface AuthContextValue {
   user: StaffUser | null
   loading: boolean
-  firebaseReady: boolean
-  loginGoogle: () => Promise<void>
-  loginDemo: () => void
-  logout: () => Promise<void>
+  login: (staffId: string, pin: string) => Promise<void>
+  logout: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+function readSession(): StaffUser | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY)
+    return raw ? (JSON.parse(raw) as StaffUser) : null
+  } catch {
+    return null
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<StaffUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    seedDemoIfEmpty()
-    const unsub = watchAuth((u) => {
-      setUser(u)
-      setLoading(false)
-    })
-    const t = window.setTimeout(() => setLoading(false), 400)
-    return () => {
-      unsub()
-      window.clearTimeout(t)
-    }
+    setUser(readSession())
+    setLoading(false)
   }, [])
 
-  const loginGoogle = useCallback(async () => {
-    const staff = await loginWithGoogle()
-    if (!staff.isAdmin) {
-      await logoutStaff()
-      throw new Error('Cuenta no autorizada. Añade tu Gmail en ADMIN_EMAILS.')
-    }
+  const login = useCallback(async (staffId: string, pin: string) => {
+    const staff = await loginLocal(staffId, pin)
+    localStorage.setItem(SESSION_KEY, JSON.stringify(staff))
     setUser(staff)
   }, [])
 
-  const loginDemo = useCallback(() => setUser(loginDemoStaff()), [])
-
-  const logout = useCallback(async () => {
-    await logoutStaff()
+  const logout = useCallback(() => {
+    localStorage.removeItem(SESSION_KEY)
     setUser(null)
   }, [])
 
-  const value = useMemo(
-    () => ({
-      user,
-      loading,
-      firebaseReady: isFirebaseConfigured,
-      loginGoogle,
-      loginDemo,
-      logout,
-    }),
-    [user, loading, loginGoogle, loginDemo, logout],
-  )
-
+  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

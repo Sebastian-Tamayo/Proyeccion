@@ -16,9 +16,6 @@ export interface Reservation {
 }
 
 export interface StaffUser {
-  uid: string
-  email: string
-  displayName: string
-  photoURL?: string
-  isAdmin: boolean
+  id: string
+  name: string
 }

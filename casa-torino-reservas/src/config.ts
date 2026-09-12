@@ -1,4 +1,4 @@
-/** Casa Torino — Gijón */
+/** Casa Torino — uso LOCAL para 4 personas del personal */
 export const BUSINESS = {
   name: 'Casa Torino',
   slogan: 'Sabor que deja huella',
@@ -8,15 +8,6 @@ export const BUSINESS = {
   maxPartySize: 12,
   minPartySize: 1,
 } as const
-
-/** Gmail del personal autorizado (producción). */
-export const ADMIN_EMAILS = [
-  'admin@casatorino.es',
-  'lorena@casatorino.es',
-  'yuli@casatorino.es',
-  'dayana@casatorino.es',
-  'demo@casatorino.es',
-]
 
 export const STATUS_LABELS: Record<import('./types').ReservationStatus, string> = {
   confirmada: 'Confirmada',
