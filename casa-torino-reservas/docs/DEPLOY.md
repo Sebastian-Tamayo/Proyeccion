@@ -2,6 +2,13 @@
 
 Netlify ya no acepta deploys (créditos agotados). Producción va en **Vercel**.
 
+## URL actual (deploy anónimo)
+
+- App: https://temporary-zippy-poplar-0bmrs89.vercel.app  
+- Claim (permanente): https://vercel.com/claim-deployment?code=2328de0e-4efd-4fea-b4bc-e3729476e34f  
+
+El deploy anónimo **caduca en ~60 minutos** si no se reclama o no hay `vercel login` + `--prod`.
+
 ## Una vez (login)
 
 ```bash
@@ -11,7 +18,7 @@ npx vercel login
 
 Abre el enlace device que imprime la CLI y confirma en el navegador.
 
-## Producción
+## Producción permanente
 
 ```bash
 cd casa-torino-reservas

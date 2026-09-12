@@ -3,9 +3,9 @@
 > **Caso real · negocio familiar · Gijón**  
 > Módulo de reservas para el personal de **Casa Torino**, pensado como **extensión** de la web pública ya publicada y del ERP / operativa interna del negocio.
 
-[![Live](https://img.shields.io/badge/demo-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com)
+[![Live](https://img.shields.io/badge/demo-temporary--zippy--poplar--0bmrs89.vercel.app-000000?logo=vercel&logoColor=white)](https://temporary-zippy-poplar-0bmrs89.vercel.app)
 [![Stack](https://img.shields.io/badge/stack-React%20%7C%20TypeScript%20%7C%20Vite%20%7C%20Vercel-111827)](#stack-técnico)
-[![Status](https://img.shields.io/badge/estado-migración%20a%20Vercel-22c55e)](#deploy)
+[![Status](https://img.shields.io/badge/estado-en%20Vercel-22c55e)](https://temporary-zippy-poplar-0bmrs89.vercel.app)
 
 ---
 
@@ -34,10 +34,13 @@ App web **mobile-first** para el personal:
 - Estados: confirmada · hecha · no vino · anulada  
 - Acceso simple por nombre + PIN (sin cuentas complejas)
 
-**Hosting actual:** Vercel (SPA + Serverless Functions).  
-*(Antes en Netlify; se migró por límite de créditos.)*
+**Demo en Vercel:** https://temporary-zippy-poplar-0bmrs89.vercel.app  
 
 > PIN de demostración del equipo: `1234` (cambiar en producción vía `src/config.ts`).
+
+> **Importante:** este deploy anónimo de Vercel caduca en ~1 h si no se reclama.  
+> Reclamar / hacer permanente: https://vercel.com/claim-deployment?code=2328de0e-4efd-4fea-b4bc-e3729476e34f  
+> O en local: `npx vercel login` y luego `npx vercel --prod` (ver [`docs/DEPLOY.md`](docs/DEPLOY.md)).
 
 ---
 
