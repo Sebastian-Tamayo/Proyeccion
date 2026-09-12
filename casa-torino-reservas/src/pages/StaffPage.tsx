@@ -5,6 +5,7 @@ import {
   createReservation,
   fetchStaffDirectory,
   listReservations,
+  updateReservation,
   updateReservationStatus,
 } from '../lib/api'
 import type { Reservation, ReservationStatus, StaffUser } from '../types'
@@ -33,6 +34,8 @@ export function StaffPage() {
   const [staffId, setStaffId] = useState('lorena')
   const [pin, setPin] = useState('')
   const [items, setItems] = useState<Reservation[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingCodigo, setEditingCodigo] = useState<string | null>(null)
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [fecha, setFecha] = useState(todayISO())
@@ -74,6 +77,31 @@ export function StaffPage() {
       .sort((a, b) => `${a.fecha}${a.hora}`.localeCompare(`${b.fecha}${b.hora}`))
   }, [items, soloHoy])
 
+  function resetForm() {
+    setEditingId(null)
+    setEditingCodigo(null)
+    setNombre('')
+    setTelefono('')
+    setNotas('')
+    setPersonas(2)
+    setHora(nearestHour())
+    setFecha(todayISO())
+  }
+
+  function startEdit(r: Reservation) {
+    setEditingId(r.id)
+    setEditingCodigo(r.codigo)
+    setNombre(r.nombre)
+    setTelefono(r.telefono)
+    setFecha(r.fecha)
+    setHora(r.hora)
+    setPersonas(r.personas)
+    setNotas(r.notas)
+    setError(null)
+    setFlash(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   async function onLogin(e: FormEvent) {
     e.preventDefault()
     setError(null)
@@ -94,22 +122,29 @@ export function StaffPage() {
     }
     setSubmitting(true)
     try {
-      const r = await createReservation({
-        nombre: nombre.trim(),
-        telefono: telefono.trim(),
-        fecha,
-        hora,
-        personas,
-        notas: notas.trim(),
-        creadoPor: user?.name ?? 'personal',
-      })
-      setFlash(`✓ Guardada · ${r.codigo} · ${r.nombre} · ${r.personas}p · ${r.hora}`)
-      setNombre('')
-      setTelefono('')
-      setNotas('')
-      setPersonas(2)
-      setHora(nearestHour())
-      setFecha(todayISO())
+      if (editingId) {
+        const r = await updateReservation(editingId, {
+          nombre: nombre.trim(),
+          telefono: telefono.trim(),
+          fecha,
+          hora,
+          personas,
+          notas: notas.trim(),
+        })
+        setFlash(`✓ Actualizada · ${r.codigo} · ${r.nombre} · ${r.personas}p · ${r.hora}`)
+      } else {
+        const r = await createReservation({
+          nombre: nombre.trim(),
+          telefono: telefono.trim(),
+          fecha,
+          hora,
+          personas,
+          notas: notas.trim(),
+          creadoPor: user?.name ?? 'personal',
+        })
+        setFlash(`✓ Guardada · ${r.codigo} · ${r.nombre} · ${r.personas}p · ${r.hora}`)
+      }
+      resetForm()
       await refresh()
       window.setTimeout(() => setFlash(null), 3500)
     } catch (err) {
@@ -121,6 +156,7 @@ export function StaffPage() {
 
   async function setEstado(id: string, estado: ReservationStatus) {
     await updateReservationStatus(id, { estado })
+    if (editingId === id) resetForm()
     await refresh()
   }
 
@@ -180,9 +216,17 @@ export function StaffPage() {
       <section className="card">
         <div className="section-head">
           <div>
-            <h1>Nueva reserva</h1>
-            <p className="muted">Hola, {user.name}</p>
+            <h1>{editingId ? 'Editar reserva' : 'Nueva reserva'}</h1>
+            <p className="muted">
+              Hola, {user.name}
+              {editingCodigo ? ` · ${editingCodigo}` : ''}
+            </p>
           </div>
+          {editingId && (
+            <button className="btn btn-ghost" type="button" onClick={resetForm}>
+              Cancelar
+            </button>
+          )}
         </div>
 
         {flash && <div className="alert alert-ok">{flash}</div>}
@@ -263,7 +307,7 @@ export function StaffPage() {
           </label>
 
           <button className="btn btn-gold btn-lg" type="submit" disabled={submitting}>
-            {submitting ? 'Guardando…' : 'Guardar'}
+            {submitting ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Guardar'}
           </button>
         </form>
       </section>
@@ -280,7 +324,7 @@ export function StaffPage() {
 
         <ul className="res-list">
           {lista.map((r) => (
-            <li key={r.id} className="res-item">
+            <li key={r.id} className={`res-item ${editingId === r.id ? 'res-item-editing' : ''}`}>
               <div>
                 <div className="res-title">
                   <b>{r.hora}</b> · {r.nombre} · {r.personas}p
@@ -297,6 +341,9 @@ export function StaffPage() {
               <div className="row-actions">
                 {r.estado === 'confirmada' && (
                   <>
+                    <button className="btn btn-outline" type="button" onClick={() => startEdit(r)}>
+                      Editar
+                    </button>
                     <button className="btn btn-ok" type="button" onClick={() => void setEstado(r.id, 'completada')}>
                       Hecha
                     </button>

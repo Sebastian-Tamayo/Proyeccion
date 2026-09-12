@@ -83,9 +83,11 @@ export async function createReservation(input: {
   return mapReservation((await res.json()) as RemoteReservation)
 }
 
-export async function updateReservationStatus(
+export async function updateReservation(
   id: string,
-  patch: Partial<Pick<Reservation, 'estado' | 'notas'>>,
+  patch: Partial<
+    Pick<Reservation, 'nombre' | 'telefono' | 'fecha' | 'hora' | 'personas' | 'notas' | 'estado'>
+  >,
 ): Promise<Reservation> {
   const currentList = await listReservations()
   const current = currentList.find((r) => r.id === id)
@@ -93,11 +95,11 @@ export async function updateReservationStatus(
 
   const next: Omit<Reservation, 'id'> = {
     codigo: current.codigo,
-    nombre: current.nombre,
-    telefono: current.telefono,
-    fecha: current.fecha,
-    hora: current.hora,
-    personas: current.personas,
+    nombre: patch.nombre ?? current.nombre,
+    telefono: patch.telefono ?? current.telefono,
+    fecha: patch.fecha ?? current.fecha,
+    hora: patch.hora ?? current.hora,
+    personas: patch.personas ?? current.personas,
     notas: patch.notas ?? current.notas,
     estado: patch.estado ?? current.estado,
     createdAt: current.createdAt,
@@ -112,4 +114,12 @@ export async function updateReservationStatus(
   })
   if (!res.ok) throw new Error(await parseError(res))
   return { id, ...next }
+}
+
+/** Compatibilidad: cambiar solo el estado */
+export function updateReservationStatus(
+  id: string,
+  patch: Partial<Pick<Reservation, 'estado' | 'notas'>>,
+) {
+  return updateReservation(id, patch)
 }

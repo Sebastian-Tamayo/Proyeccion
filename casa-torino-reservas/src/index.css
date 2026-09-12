@@ -123,6 +123,10 @@ input:focus, select:focus {
   border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
   padding: 0.75rem; background: rgba(0,0,0,.22);
 }
+.res-item-editing {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(212,175,55,.35);
+}
 .res-title { font-size: 1rem; margin-bottom: 0.2rem; }
 .row-actions, .row-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.55rem; }
 .row-actions .btn, .row-actions .btn { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
