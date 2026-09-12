@@ -15,6 +15,12 @@ function todayISO() {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 10)
 }
 
+function formatFecha(iso: string) {
+  const [y, m, d] = iso.split('-')
+  if (!y || !m || !d) return iso
+  return `${d}/${m}`
+}
+
 function nearestHour() {
   const now = new Date()
   const h = now.getHours()
@@ -327,7 +333,10 @@ export function StaffPage() {
             <li key={r.id} className={`res-item ${editingId === r.id ? 'res-item-editing' : ''}`}>
               <div>
                 <div className="res-title">
-                  <b>{r.hora}</b> · {r.nombre} · {r.personas}p
+                  <b>
+                    {formatFecha(r.fecha)} · {r.hora}
+                  </b>{' '}
+                  · {r.nombre} · {r.personas}p
                 </div>
                 <div className="muted small">
                   {r.codigo}
