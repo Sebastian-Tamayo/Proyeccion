@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "start": "npm run build && npm run local",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:vercel": "vercel --prod"
   },
   "dependencies": {
     "@netlify/blobs": "^11.0.3",
@@ -27,6 +28,7 @@
     "concurrently": "^10.0.5",
     "oxlint": "^1.81.0",
     "typescript": "~6.0.2",
+    "vercel": "^59.16.0",
     "vite": "^8.3.0"
   }
 }

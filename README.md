@@ -77,7 +77,7 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 
 | Caso | Descripción |
 |------|-------------|
-| [`casa-torino-reservas/`](casa-torino-reservas/) | **Producto real:** reservas mobile-first para negocio familiar (extensión de web + ERP). Demo: [reservas-casatorino.netlify.app](https://reservas-casatorino.netlify.app) |
+| [`casa-torino-reservas/`](casa-torino-reservas/) | **Producto real:** reservas mobile-first para negocio familiar (extensión de web + ERP). Hosting: **Vercel** (migrado desde Netlify) |
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
 | [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
 | [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Gmail: vaciar buzón o limpieza selectiva (dry-run por defecto) |
@@ -103,7 +103,7 @@ Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PRO
 | Playbook MFA: desasignar en consola ≠ borrar usuario AD | Evita cascadas de SID/buzón/compliance |
 | `Deploy-SAP740.ps1` EDR-safe | Sin PInvoke/kernel32 ni `cmd` ofuscado; menos falsos positivos SOC |
 | Ejecución desde lápiz USB | Menor lead time de provisión (sin pegar a `C:\Deploy`) |
-| **Casa Torino Reservas (prod)** | Producto real: React/TS + Netlify Functions/Blobs; extensión web + ERP familiar |
+| **Casa Torino Reservas (prod)** | Producto real: React/TS + Vercel Serverless; extensión web + ERP familiar |
 | Memoria y docs anonimizados | Repo publicable sin filtrar datos personales/corporativos |
 
 *Cifras de ROI en `memoria.md` son estimaciones de escenario de laboratorio (datos ficticios).*

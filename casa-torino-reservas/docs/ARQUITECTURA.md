@@ -6,13 +6,14 @@
 [Móvil personal]
       │ HTTPS
       ▼
-[SPA React (Netlify CDN)]
+[SPA React (Vercel CDN)]
       │ /api/reservas
       ▼
-[Netlify Functions]
+[Vercel Serverless Functions]
       │
       ▼
-[Netlify Blobs]  ← persistencia JSON de reservas
+[Store HTTP remoto]  ← persistencia JSON de reservas
+   (CrudCrud hoy; Blob/KV/Postgres mañana)
 ```
 
 ## Endpoints
@@ -25,7 +26,12 @@
 ## Frontend
 - `StaffPage`: login + formulario + listado + edición inline  
 - `config.ts`: datos de negocio, personal y PIN  
-- `lib/api.ts`: cliente tipado
+- `lib/api.ts`: cliente tipado (`ONLINE_API_BASE = '/api/reservas'`)
+
+## Backend (Vercel)
+- `api/reservas.js` → GET/POST  
+- `api/reservas/[id].js` → PUT  
+- `server/reservas-store.js` → URL del store + helpers (`mapItem`, CORS)
 
 ## Seguridad (nivel negocio pequeño)
 - Auth por PIN en cliente (suficiente para uso interno controlado)  
@@ -34,5 +40,5 @@
 
 ## Deploy
 - Build: `npm run build` → `dist/`  
-- Hosting + functions: Netlify (`netlify.toml`)  
-- URL prod: https://reservas-casatorino.netlify.app
+- Hosting + functions: Vercel (`vercel.json`)  
+- SPA rewrite: rutas de app → `index.html` sin tragar `/api/*`

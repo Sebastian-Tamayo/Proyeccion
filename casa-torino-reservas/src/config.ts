@@ -10,9 +10,9 @@ export const BUSINESS = {
 } as const
 
 /**
- * API en Netlify (Blobs). El frontend puede estar en Vercel/Netlify.
+ * API en el mismo dominio (Vercel Serverless).
  */
-export const ONLINE_API_BASE = 'https://reservas-casatorino.netlify.app/api/reservas'
+export const ONLINE_API_BASE = '/api/reservas'
 
 /** 4 personas del equipo. PIN por defecto 1234. */
 export const STAFF = [

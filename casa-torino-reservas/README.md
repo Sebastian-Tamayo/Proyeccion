@@ -3,9 +3,9 @@
 > **Caso real · negocio familiar · Gijón**  
 > Módulo de reservas para el personal de **Casa Torino**, pensado como **extensión** de la web pública ya publicada y del ERP / operativa interna del negocio.
 
-[![Live](https://img.shields.io/badge/demo-reservas--casatorino.netlify.app-00C7B7?logo=netlify&logoColor=white)](https://reservas-casatorino.netlify.app)
-[![Stack](https://img.shields.io/badge/stack-React%20%7C%20TypeScript%20%7C%20Vite%20%7C%20Netlify-111827)](#stack-técnico)
-[![Status](https://img.shields.io/badge/estado-en%20producción-22c55e)](https://reservas-casatorino.netlify.app)
+[![Live](https://img.shields.io/badge/demo-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com)
+[![Stack](https://img.shields.io/badge/stack-React%20%7C%20TypeScript%20%7C%20Vite%20%7C%20Vercel-111827)](#stack-técnico)
+[![Status](https://img.shields.io/badge/estado-migración%20a%20Vercel-22c55e)](#deploy)
 
 ---
 
@@ -34,7 +34,8 @@ App web **mobile-first** para el personal:
 - Estados: confirmada · hecha · no vino · anulada  
 - Acceso simple por nombre + PIN (sin cuentas complejas)
 
-**Demo en producción:** https://reservas-casatorino.netlify.app  
+**Hosting actual:** Vercel (SPA + Serverless Functions).  
+*(Antes en Netlify; se migró por límite de créditos.)*
 
 > PIN de demostración del equipo: `1234` (cambiar en producción vía `src/config.ts`).
 
@@ -54,7 +55,7 @@ App web **mobile-first** para el personal:
                      ▼
         ┌──────────────────────────┐
         │  Reservas (este repo)    │  Captura operativa en sala
-        │  reservas-casatorino…    │  Móvil del personal
+        │  Vercel                  │  Móvil del personal
         └────────────┬─────────────┘
                      │  datos de ocupación / servicio
                      ▼
@@ -81,10 +82,6 @@ Las capturas y GIFs se añadirán aquí:
 
 Plantilla y naming: [`docs/MEDIA.md`](docs/MEDIA.md).
 
-<!-- Ejemplo cuando existan:
-![Login](docs/assets/01-login.png)
--->
-
 ---
 
 ## Funcionalidades
@@ -95,8 +92,8 @@ Plantilla y naming: [`docs/MEDIA.md`](docs/MEDIA.md).
 - [x] Ver hoy / ver todas (con **fecha visible** en listado)
 - [x] Cambiar estado (Hecha / No vino / Anular)
 - [x] Acceso WhatsApp al teléfono del cliente
-- [x] API serverless + almacenamiento en Netlify Blobs
-- [x] Deploy en Netlify (producción)
+- [x] API serverless en Vercel (`/api/reservas`)
+- [x] Deploy en Vercel (producción)
 
 ---
 
@@ -107,9 +104,9 @@ Plantilla y naming: [`docs/MEDIA.md`](docs/MEDIA.md).
 | UI | React 19 + TypeScript + Vite |
 | Estilos | CSS propio (mobile-first, identidad Casa Torino) |
 | Routing | React Router |
-| API | Netlify Functions (`/api/reservas`) |
-| Persistencia | Netlify Blobs |
-| Hosting | Netlify |
+| API | Vercel Serverless Functions (`/api/reservas`) |
+| Persistencia | Store HTTP remoto (CrudCrud; sustituible por Blob/KV) |
+| Hosting | Vercel |
 | Auth personal | PIN por perfil (sin OAuth, a propósito: simplicidad en sala) |
 
 ---
@@ -119,7 +116,8 @@ Plantilla y naming: [`docs/MEDIA.md`](docs/MEDIA.md).
 ```text
 casa-torino-reservas/
 ├── docs/                  # Producto, arquitectura, media
-├── netlify/functions/     # API (listado, alta, edición)
+├── api/                   # Vercel Serverless (listado, alta, edición)
+├── server/                # Helpers compartidos + API local Express
 ├── public/                # Logo y estáticos
 ├── src/
 │   ├── components/        # Topbar
@@ -127,7 +125,7 @@ casa-torino-reservas/
 │   ├── pages/StaffPage.tsx
 │   ├── config.ts          # Negocio + personal + PIN
 │   └── ...
-├── netlify.toml
+├── vercel.json
 └── README.md              # Este documento
 ```
 
@@ -141,17 +139,26 @@ Más detalle: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) · [`docs/PRODUCTO.
 cd casa-torino-reservas
 npm install
 npm run build
-# Para UI local (la API de producción sigue en Netlify):
 npm run preview
 ```
 
-Desarrollo con Vite:
+Desarrollo con Vite + API local:
 
 ```bash
 npm run dev
 ```
 
-> En local, `src/config.ts` apunta a la API de producción en Netlify para no depender de funciones locales. Para API 100% local, se puede volver a `/api/reservas` + `netlify dev`.
+En producción la app llama a `/api/reservas` en el mismo dominio (Vercel).
+
+### Deploy en Vercel
+
+```bash
+cd casa-torino-reservas
+npx vercel login
+npx vercel --prod
+```
+
+Opcional: variable de entorno `RESERVAS_STORE_URL` para el endpoint de persistencia.
 
 ---
 
@@ -159,8 +166,9 @@ npm run dev
 
 1. **Personal primero, no cliente final** → reduce pasos en el momento de la reserva presencial.  
 2. **PIN simple vs Google Auth** → prioridad a velocidad en barra/sala.  
-3. **Serverless + Blobs** → sin servidor que mantener para un negocio pequeño.  
-4. **Extensión, no monolito** → respeta web pública y ERP ya existentes.
+3. **Serverless + store remoto** → sin servidor que mantener para un negocio pequeño.  
+4. **Extensión, no monolito** → respeta web pública y ERP ya existentes.  
+5. **Migración Netlify → Vercel** → continuidad del servicio tras agotar créditos de Netlify.
 
 ---
 
