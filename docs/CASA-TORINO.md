@@ -1,13 +1,13 @@
 # Casa Torino — índice rápido
 
-- **Reservas (este monorepo):** [`../casa-torino-reservas/README.md`](../casa-torino-reservas/README.md)
-- **Web pública (marca):** https://casatorino.netlify.app
-- **App reservas (prod):** https://reservas-casatorino.vercel.app
+> **El ecosistema unificado vive ahora en:**  
+> https://github.com/Sebastian-Tamayo/CasaTorinoApp
 
-```bash
-cd casa-torino-reservas
-npx vercel login
-npx vercel --prod
-```
+Allí están juntos:
 
-Narrativa para portfolio: extensión digital del negocio familiar (web + ERP + módulo de reservas).
+- `web/` — página pública ([casatorino.netlify.app](https://casatorino.netlify.app))
+- `reservas/` — gestión de mesas ([reservas-casatorino.vercel.app](https://reservas-casatorino.vercel.app))
+- `erp/` — back-office / ERP (Next.js + Supabase)
+
+Este monorepo (`Proyeccion`) conserva una copia histórica en `casa-torino-reservas/` por trazabilidad de aprendizaje; la **fuente de verdad del producto conjunto** es **CasaTorinoApp**.
+test
