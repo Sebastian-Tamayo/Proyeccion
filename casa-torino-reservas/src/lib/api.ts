@@ -1,5 +1,5 @@
 import { ONLINE_API_BASE, STAFF } from '../config'
-import type { Reservation, ReservationStatus, StaffUser } from '../types'
+import type { Reservation, StaffUser } from '../types'
 
 type RemoteReservation = Omit<Reservation, 'id'> & { _id?: string; id?: string }
 
@@ -60,24 +60,10 @@ export async function createReservation(input: {
   notas: string
   creadoPor: string
 }): Promise<Reservation> {
-  const now = new Date().toISOString()
-  const payload = {
-    codigo: `CT-${Math.floor(1000 + Math.random() * 9000)}`,
-    nombre: input.nombre,
-    telefono: input.telefono,
-    fecha: input.fecha,
-    hora: input.hora,
-    personas: input.personas,
-    notas: input.notas,
-    estado: 'confirmada' as ReservationStatus,
-    createdAt: now,
-    updatedAt: now,
-    creadoPor: input.creadoPor,
-  }
   const res = await fetch(ONLINE_API_BASE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(input),
   })
   if (!res.ok) throw new Error(await parseError(res))
   return mapReservation((await res.json()) as RemoteReservation)
@@ -89,34 +75,15 @@ export async function updateReservation(
     Pick<Reservation, 'nombre' | 'telefono' | 'fecha' | 'hora' | 'personas' | 'notas' | 'estado'>
   >,
 ): Promise<Reservation> {
-  const currentList = await listReservations()
-  const current = currentList.find((r) => r.id === id)
-  if (!current) throw new Error('Reserva no encontrada')
-
-  const next: Omit<Reservation, 'id'> = {
-    codigo: current.codigo,
-    nombre: patch.nombre ?? current.nombre,
-    telefono: patch.telefono ?? current.telefono,
-    fecha: patch.fecha ?? current.fecha,
-    hora: patch.hora ?? current.hora,
-    personas: patch.personas ?? current.personas,
-    notas: patch.notas ?? current.notas,
-    estado: patch.estado ?? current.estado,
-    createdAt: current.createdAt,
-    updatedAt: new Date().toISOString(),
-    creadoPor: current.creadoPor,
-  }
-
   const res = await fetch(`${ONLINE_API_BASE}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(next),
+    body: JSON.stringify(patch),
   })
   if (!res.ok) throw new Error(await parseError(res))
-  return { id, ...next }
+  return mapReservation((await res.json()) as RemoteReservation)
 }
 
-/** Compatibilidad: cambiar solo el estado */
 export function updateReservationStatus(
   id: string,
   patch: Partial<Pick<Reservation, 'estado' | 'notas'>>,

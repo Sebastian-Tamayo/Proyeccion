@@ -10,11 +10,10 @@ export const BUSINESS = {
 } as const
 
 /**
- * Backend online (CrudCrud) — sin instalar nada en el bar.
- * Las reservas se guardan en internet y las ven las 4 personas.
+ * API propia en Netlify (estable).
+ * En local/dev sin funciones, se puede apuntar a un fallback.
  */
-export const ONLINE_API_BASE =
-  'https://crudcrud.com/api/b28a6c30c1914952be74eee8dbd206c9/reservas'
+export const ONLINE_API_BASE = '/api/reservas'
 
 /** 4 personas del equipo. PIN por defecto 1234. */
 export const STAFF = [
