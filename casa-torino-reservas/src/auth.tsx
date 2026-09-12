@@ -10,7 +10,7 @@ import {
 import { loginLocal } from './lib/api'
 import type { StaffUser } from './types'
 
-const SESSION_KEY = 'casa-torino-local-staff'
+const SESSION_KEY = 'casa-torino-online-staff'
 
 interface AuthContextValue {
   user: StaffUser | null

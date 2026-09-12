@@ -1,40 +1,16 @@
-# Casa Torino — Reservas LOCALES (4 personas)
+# Reservas Casa Torino (online, simple)
 
-Aplicación **solo local** para el personal del bar.
-No se publica en internet.
+App para que **Lorena, Yuli, Dayana y Claribel** apunten reservas desde el móvil.
+No hace falta instalar nada: solo abrir el enlace.
 
-## Personal (4)
-| Persona  | PIN |
-|----------|-----|
-| Lorena   | 1234 |
-| Yuli     | 1234 |
-| Dayana   | 1234 |
-| Claribel | 1234 |
+## Cómo entrar
+1. Abre el enlace de la web
+2. Elige tu nombre
+3. PIN: **1234**
+4. Guarda la reserva
 
-Cambia los PIN en `server/staff.json`.
-
-## Cómo usarla en el bar
-
-En el **PC del bar** (conectado al WiFi del local):
-
-```bash
-cd casa-torino-reservas
-npm install
-npm run start
-```
-
-La terminal mostrará algo así:
-- PC: `http://127.0.0.1:8787`
-- Móvil: `http://192.168.x.x:8787` (misma WiFi)
-
-Los 4 móviles abren esa IP. Todos ven las mismas reservas
-(guardadas en `data/reservas.json`).
-
-## Campos (rápidos)
+## Campos
 Nombre · Teléfono (opc.) · Personas · Día · Hora · Nota (opc.)
 
-## Desarrollo
-```bash
-npm run local   # API + dist en :8787
-npm run dev     # API + Vite a la vez
-```
+## Cambiar PIN
+Edita `src/config.ts` → lista `STAFF`.

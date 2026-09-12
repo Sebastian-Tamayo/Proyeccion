@@ -10,7 +10,7 @@ export function Topbar() {
         <img src="/logo.jpg" alt="Casa Torino" />
         <div>
           <strong>{BUSINESS.name}</strong>
-          <span>Local · 4 personas</span>
+          <span>Reservas online · 4 personas</span>
         </div>
       </div>
       {user && (

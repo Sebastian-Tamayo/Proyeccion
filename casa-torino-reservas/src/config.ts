@@ -1,4 +1,4 @@
-/** Casa Torino — uso LOCAL para 4 personas del personal */
+/** Casa Torino — app online simple para 4 personas del personal */
 export const BUSINESS = {
   name: 'Casa Torino',
   slogan: 'Sabor que deja huella',
@@ -8,6 +8,21 @@ export const BUSINESS = {
   maxPartySize: 12,
   minPartySize: 1,
 } as const
+
+/**
+ * Backend online (CrudCrud) — sin instalar nada en el bar.
+ * Las reservas se guardan en internet y las ven las 4 personas.
+ */
+export const ONLINE_API_BASE =
+  'https://crudcrud.com/api/b28a6c30c1914952be74eee8dbd206c9/reservas'
+
+/** 4 personas del equipo. PIN por defecto 1234. */
+export const STAFF = [
+  { id: 'lorena', name: 'Lorena', pin: '1234' },
+  { id: 'yuli', name: 'Yuli', pin: '1234' },
+  { id: 'dayana', name: 'Dayana', pin: '1234' },
+  { id: 'claribel', name: 'Claribel', pin: '1234' },
+] as const
 
 export const STATUS_LABELS: Record<import('./types').ReservationStatus, string> = {
   confirmada: 'Confirmada',

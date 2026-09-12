@@ -45,12 +45,10 @@ export function StaffPage() {
   const [soloHoy, setSoloHoy] = useState(true)
 
   useEffect(() => {
-    void fetchStaffDirectory()
-      .then((list) => {
-        setDirectory(list)
-        if (list[0]) setStaffId(list[0].id)
-      })
-      .catch(() => setError('No hay servidor local. En el PC: npm run local'))
+    void fetchStaffDirectory().then((list) => {
+      setDirectory(list)
+      if (list[0]) setStaffId(list[0].id)
+    })
   }, [])
 
   async function refresh() {
@@ -60,11 +58,11 @@ export function StaffPage() {
   useEffect(() => {
     if (!user) return
     void refresh().catch((err: unknown) =>
-      setError(err instanceof Error ? err.message : 'No se pudieron cargar reservas'),
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar las reservas'),
     )
     const t = window.setInterval(() => {
       void refresh().catch(() => undefined)
-    }, 2500)
+    }, 4000)
     return () => window.clearInterval(t)
   }, [user])
 
@@ -105,7 +103,7 @@ export function StaffPage() {
         notas: notas.trim(),
         creadoPor: user?.name ?? 'personal',
       })
-      setFlash(`✓ ${r.codigo} · ${r.nombre} · ${r.personas}p · ${r.hora}`)
+      setFlash(`✓ Guardada · ${r.codigo} · ${r.nombre} · ${r.personas}p · ${r.hora}`)
       setNombre('')
       setTelefono('')
       setNotas('')
@@ -113,7 +111,7 @@ export function StaffPage() {
       setHora(nearestHour())
       setFecha(todayISO())
       await refresh()
-      window.setTimeout(() => setFlash(null), 3000)
+      window.setTimeout(() => setFlash(null), 3500)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar')
     } finally {
@@ -139,8 +137,8 @@ export function StaffPage() {
       <main className="page">
         <div className="card login-box">
           <img src="/logo.jpg" alt="Casa Torino" />
-          <h1>Reservas locales</h1>
-          <p className="muted">Solo personal · 4 personas · sin publicar</p>
+          <h1>Reservas Casa Torino</h1>
+          <p className="muted">Elige tu nombre y escribe el PIN</p>
           {error && <div className="alert alert-error">{error}</div>}
           <form className="quick-form" onSubmit={(e) => void onLogin(e)}>
             <label>
@@ -170,7 +168,7 @@ export function StaffPage() {
             </button>
           </form>
           <p className="muted small" style={{ marginTop: '0.75rem' }}>
-            PIN por defecto: 1234
+            PIN de las 4: <b>1234</b>
           </p>
         </div>
       </main>
@@ -183,7 +181,7 @@ export function StaffPage() {
         <div className="section-head">
           <div>
             <h1>Nueva reserva</h1>
-            <p className="muted">Rápido · {user.name}</p>
+            <p className="muted">Hola, {user.name}</p>
           </div>
         </div>
 
@@ -327,7 +325,7 @@ export function StaffPage() {
       </section>
 
       <p className="footer-mini">
-        {BUSINESS.name} · Local · {BUSINESS.address}
+        {BUSINESS.name} · Online · {BUSINESS.address}
       </p>
     </main>
   )
