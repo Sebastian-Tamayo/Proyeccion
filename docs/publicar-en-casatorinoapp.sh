@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Publica web + ERP + reservas SOLO en CasaTorinoApp (ejecutar en tu PC con tu usuario GitHub).
+# Publica web + ERP + reservas SOLO en CasaTorinoApp.
+# Compatible con Git Bash en Windows.
 set -euo pipefail
 
-RECOVERY=7c725aa2f746e14c6021473af10676d2c7e3a6b9
+TARBALL_URL="https://github.com/Sebastian-Tamayo/Proyeccion/releases/download/casatorino-ecosistema-v1/CasaTorinoApp-ecosistema.tar.gz"
 WORKDIR=$(mktemp -d)
 echo "Workdir: $WORKDIR"
 cd "$WORKDIR"
@@ -11,29 +12,41 @@ echo "==> 1/4 Clonando destino CasaTorinoApp"
 git clone https://github.com/Sebastian-Tamayo/CasaTorinoApp.git dest
 cd dest
 
-echo "==> 2/4 Recuperando monorepo unificado desde historial Proyeccion"
-git clone --filter=blob:none --no-checkout https://github.com/Sebastian-Tamayo/Proyeccion.git /tmp/proy-hist
-git -C /tmp/proy-hist fetch --depth 1 origin "$RECOVERY"
-git -C /tmp/proy-hist checkout "$RECOVERY" -- casa-torino
+echo "==> 2/4 Descargando monorepo unificado (tarball)"
+curl -fL --retry 3 -o /tmp/CasaTorinoApp-ecosistema.tar.gz "$TARBALL_URL"
+ls -lh /tmp/CasaTorinoApp-ecosistema.tar.gz
 
 echo "==> 3/4 Sustituyendo contenido (se conserva .git)"
+# borrar todo excepto .git
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-cp -a /tmp/proy-hist/casa-torino/. .
+mkdir -p _extract
+tar -xzf /tmp/CasaTorinoApp-ecosistema.tar.gz -C _extract
+# el tarball ya contiene web/ erp/ reservas/ en la raíz
+cp -a _extract/. .
+rm -rf _extract
+rm -f /tmp/CasaTorinoApp-ecosistema.tar.gz
 
-echo "==> Estructura:"
+echo "==> Estructura resultante:"
 ls -1
-test -d web && test -d erp && test -d reservas && test -f README.md
+test -d web
+test -d erp
+test -d reservas
+test -f README.md
 
-echo "==> 4/4 Commit + push"
+echo "==> 4/4 Commit + push a CasaTorinoApp"
 git add -A
-git commit -m "Unify Casa Torino ecosystem: web + ERP + reservas"
-git push origin main
+if git diff --cached --quiet; then
+  echo "No hay cambios (¿ya estaba unificado?)."
+else
+  git commit -m "Unify Casa Torino ecosystem: web + ERP + reservas"
+  git push origin main
+fi
 
 echo
 echo "OK -> https://github.com/Sebastian-Tamayo/CasaTorinoApp"
-echo "Deben verse: web/  erp/  reservas/  docs/"
+echo "Deben verse carpetas: web/  erp/  reservas/  docs/"
 
-# Optional: archive old web repo
+echo
 read -r -p "¿Archivar casa-torino-web con README de redirección? [y/N] " ans || true
 if [[ "${ans:-}" =~ ^[Yy]$ ]]; then
   cd "$WORKDIR"
