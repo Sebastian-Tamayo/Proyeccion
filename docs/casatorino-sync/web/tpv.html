@@ -661,7 +661,6 @@
   <script src="tpvSync.js"></script>
   <script>
     (() => {
-      const PIN = '3212'
       const AUTH_KEY = 'casa-torino-tpv-auth-v1'
       const $ = (id) => document.getElementById(id)
 
@@ -694,13 +693,26 @@
         )
       }
 
-      function tryPin() {
-        if (pinBuf === PIN) {
-          if ($('gateErr')) $('gateErr').textContent = ''
-          unlockTpv()
-          return
+      async function tryPin() {
+        if (pinBuf.length < 4) return
+        try {
+          const r = await fetch('/api/tpv-auth', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: pinBuf }),
+          })
+          const data = await r.json().catch(() => ({}))
+          if (r.ok && data.ok) {
+            if ($('gateErr')) $('gateErr').textContent = ''
+            unlockTpv()
+            return
+          }
+          failPin((data && data.error) || 'PIN incorrecto')
+        } catch (err) {
+          console.warn('[tpv-auth]', err)
+          failPin('No se pudo validar el PIN')
         }
-        failPin('PIN incorrecto')
       }
 
       function onPinKey(k) {
@@ -733,12 +745,21 @@
         if (/^\d$/.test(e.key)) onPinKey(e.key)
       })
 
-      try {
-        if (sessionStorage.getItem(AUTH_KEY) === '1') unlockTpv()
-        else paintPinDots()
-      } catch {
+      paintPinDots()
+      ;(async () => {
+        try {
+          if (sessionStorage.getItem(AUTH_KEY) === '1') {
+            const r = await fetch('/api/tpv-auth', { credentials: 'same-origin', cache: 'no-store' })
+            const data = await r.json().catch(() => ({}))
+            if (r.ok && data.ok) {
+              unlockTpv()
+              return
+            }
+            try { sessionStorage.removeItem(AUTH_KEY) } catch {}
+          }
+        } catch {}
         paintPinDots()
-      }
+      })()
 
       function startTpv() {
       const catalog = window.TPV_CATALOG || []

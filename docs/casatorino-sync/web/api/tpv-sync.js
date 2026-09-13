@@ -10,14 +10,16 @@
 const EDGE_ID = process.env.TPV_EDGE_CONFIG_ID
 const TEAM_ID = process.env.TPV_TEAM_ID
 const VERCEL_TOKEN = process.env.TPV_VERCEL_TOKEN
-const SYNC_KEY = process.env.TPV_SYNC_KEY || 'casa-torino-tpv-sync'
+const SYNC_KEY = process.env.TPV_SYNC_KEY || ''
 const ITEM_KEY = 'tpv'
 
 /** @type {null | { tables: object, mesa: string, updatedAt: number, clientId?: string }} */
 let memory = null
 
-function cors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
+function cors(req, res) {
+  const origin = req.headers.origin || '*'
+  res.setHeader('Access-Control-Allow-Origin', origin)
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
   res.setHeader(
     'Access-Control-Allow-Headers',
@@ -30,11 +32,18 @@ function emptyState() {
   return { tables: {}, mesa: '', updatedAt: 0, clientId: null }
 }
 
+function hasTpvSession(req) {
+  const raw = req.headers.cookie || ''
+  return raw.split(';').some((c) => c.trim() === 'ct_tpv_session=1')
+}
+
 function authorized(req) {
-  const key = req.headers['x-tpv-key']
-  // GET puede ir sin clave; POST exige la clave compartida
+  // GET/OPTIONS públicos (solo lectura del estado de mesas)
   if (req.method === 'GET' || req.method === 'OPTIONS') return true
-  return key && key === SYNC_KEY
+  // POST: cookie de sesión tras PIN, o clave de servidor (no se documenta en el cliente)
+  if (hasTpvSession(req)) return true
+  const key = req.headers['x-tpv-key']
+  return Boolean(SYNC_KEY && key && key === SYNC_KEY)
 }
 
 async function readEdge() {
@@ -94,7 +103,7 @@ async function getState() {
 }
 
 module.exports = async function handler(req, res) {
-  cors(res)
+  cors(req, res)
   if (req.method === 'OPTIONS') {
     res.statusCode = 204
     return res.end()

@@ -5,7 +5,6 @@
  */
 (() => {
   const API_URL = '/api/tpv-sync'
-  const SYNC_KEY = 'casa-torino-tpv-sync'
   const POLL_MS = 1500
   const PUSH_DEBOUNCE_MS = 400
   const CLIENT_ID =
@@ -24,6 +23,7 @@
   async function pull() {
     const r = await fetch(API_URL, {
       cache: 'no-store',
+      credentials: 'same-origin',
       headers: { 'Cache-Control': 'no-store' },
     })
     if (!r.ok) throw new Error('sync GET ' + r.status)
@@ -42,9 +42,9 @@
     }
     const r = await fetch(API_URL, {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        'X-Tpv-Key': SYNC_KEY,
       },
       body: JSON.stringify(body),
     })
