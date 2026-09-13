@@ -535,7 +535,9 @@
   </div>
   <div class="backdrop" id="backdrop" hidden></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js"></script>
   <script src="tpv-data.js"></script>
+  <script src="printService.js"></script>
   <script>
     (() => {
       const catalog = window.TPV_CATALOG || []
@@ -676,12 +678,28 @@
         persist(); render(); closeTicket()
       }
 
-      function done() {
-        const { total, count } = totals()
+      async function done() {
+        const { ls, total, count } = totals()
         if (!count) return
         const m = normalizeMesa(state.mesa)
         const mesaTxt = m ? `Mesa ${m}\n` : ''
-        if (!confirm(`${mesaTxt}Cobrado ${money(total)}\n\n¿Cerrar esta cuenta y empezar otra?`)) return
+        if (!confirm(`${mesaTxt}Cobrado ${money(total)}\n\n¿Imprimir ticket, abrir cajón y cerrar esta cuenta?`)) return
+
+        // Snapshot antes de vaciar (para el ticket)
+        const cartItems = ls.map((l) => ({ name: l.name, qty: l.qty, price: l.price }))
+        const paidRaw = $('paid')?.value || ''
+        const paid = parseFloat(String(paidRaw).replace(',', '.'))
+        const meta = {
+          mesa: m || undefined,
+          paid: Number.isFinite(paid) ? paid : undefined,
+          change: Number.isFinite(paid) ? paid - total : undefined,
+        }
+
+        // Imprime + abre cajón (si QZ Tray no está, avisa y NO bloquea el cobro)
+        if (window.CasaTorinoPrint?.printReceipt) {
+          await window.CasaTorinoPrint.printReceipt(cartItems, total, meta)
+        }
+
         state.cart = {}; state.hist = []; $('paid').value = ''
         if (m) state.tables[m] = { cart: {}, hist: [], paid: '' }
         persist(); render(); closeTicket()
