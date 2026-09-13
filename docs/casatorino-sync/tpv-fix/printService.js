@@ -186,6 +186,7 @@
     }
   }
 
+  // API usada por tpv.html → botón Cobrado
   window.CasaTorinoPrint = {
     printReceipt,
     ensureConnected,
