@@ -32,7 +32,7 @@
       --blue: #5b9dff;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
-      --check-w: min(440px, 42vw);
+      --check-w: min(480px, 44vw);
       --rail-w: 92px;
       --radius: 18px;
       --shadow: 0 18px 50px rgba(0,0,0,.45);
@@ -393,7 +393,7 @@
     }
 
     /* Teléfonos grandes / landscape: 2 columnas ya legibles */
-    @media (min-width: 560px) and (max-width: 899px) {
+    @media (min-width: 560px) and (max-width: 1023px) {
       .products { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
       .prod { min-height: 108px; padding: .9rem .8rem .8rem; }
       .prod .name { font-size: .9rem; }
@@ -403,8 +403,8 @@
     }
 
     /* Tablet / desktop: Square Real-Time Check View */
-    @media (min-width: 900px) {
-      :root { --check-w: min(460px, 42vw); }
+    @media (min-width: 1024px) {
+      :root { --check-w: min(480px, 44vw); }
       .workspace {
         grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--check-w);
         grid-template-rows: 1fr;
@@ -435,10 +435,10 @@
       .products { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     @media (min-width: 1280px) {
-      :root { --check-w: 440px; --rail-w: 100px; }
+      :root { --check-w: 480px; --rail-w: 100px; }
       .products { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
-    @media (max-width: 899px) {
+    @media (max-width: 1023px) {
       .search { display: none; }
       .clock { display: none; }
       .brand em { display: none; }
@@ -630,7 +630,7 @@
           return true
         }
         alert('Pon primero el número de mesa.\nAsí la cuenta queda asociada a esa mesa.')
-        const focusEl = window.matchMedia('(min-width: 900px)').matches ? $('mesa') : ($('mesaTop') || $('mesa'))
+        const focusEl = window.matchMedia('(min-width: 1024px)').matches ? $('mesa') : ($('mesaTop') || $('mesa'))
         focusEl?.focus()
         return false
       }
@@ -833,7 +833,7 @@
       setInterval(tickClock, 30000)
       setTimeout(() => {
         if (!$('mesa').value) {
-          const focusEl = window.matchMedia('(min-width: 900px)').matches ? $('mesa') : ($('mesaTop') || $('mesa'))
+          const focusEl = window.matchMedia('(min-width: 1024px)').matches ? $('mesa') : ($('mesaTop') || $('mesa'))
           focusEl?.focus()
         }
       }, 120)
