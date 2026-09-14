@@ -171,13 +171,13 @@ a { color: inherit; }
 .hero-photo {
   margin: 0;
   justify-self: center;
-  width: min(100%, 420px);
+  width: min(100%, 560px);
 }
 .hero-photo img {
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  object-position: center 35%;
+  object-position: center;
   border-radius: 22px;
   border: 3px solid #fff;
   box-shadow:
@@ -279,17 +279,8 @@ a { color: inherit; }
   width: min(100%, 380px);
 }
 .terraza-media.portrait img {
-  width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  object-position: center 30%;
-  border-radius: 22px;
-  border: 3px solid #fff;
-  box-shadow:
-    0 0 0 3px var(--gold),
-    0 0 0 6px rgba(0,56,147,.3),
-    0 0 0 9px rgba(200,16,46,.22),
-    var(--shadow);
 }
 
 .menu-dia {
@@ -506,7 +497,7 @@ a { color: inherit; }
   .hero-content { text-align: center; max-width: none; }
   .hero-logo { margin-left: auto; margin-right: auto; }
   .hero-actions, .hero-meta, .fusion-chips { justify-content: center; }
-  .hero-photo, .terraza-media { width: min(100%, 340px); }
+  .hero-photo, .terraza-media { width: min(100%, 100%); max-width: 560px; }
   .dish-list { grid-template-columns: 1fr; }
   .carta-nav {
     top: 68px;
