@@ -74,18 +74,25 @@ async function writeEdge(items) {
       },
     ],
   }
-  const r = await fetch(url, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${VERCEL_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  })
-  if (!r.ok) {
+
+  let lastErr = null
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const r = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${VERCEL_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+    if (r.ok) return
     const text = await r.text().catch(() => '')
-    throw new Error('edge PATCH ' + r.status + ' ' + text.slice(0, 180))
+    lastErr = new Error('edge PATCH ' + r.status + ' ' + text.slice(0, 180))
+    // Reintentar solo ante conflictos/transitorios
+    if (r.status !== 409 && r.status !== 429 && r.status < 500) break
+    await new Promise((resolve) => setTimeout(resolve, 120 * attempt))
   }
+  throw lastErr || new Error('edge PATCH failed')
 }
 
 async function loadItems() {
