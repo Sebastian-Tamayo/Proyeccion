@@ -334,6 +334,35 @@
       padding: .85rem 1rem 1rem;
       display: grid; gap: .7rem;
     }
+
+    .notes-field {
+      margin-top: .55rem;
+      display: grid; gap: .35rem;
+      background: var(--card); border: 1px solid var(--line2); border-radius: 16px;
+      padding: .55rem .7rem .65rem;
+    }
+    .notes-field label {
+      font-size: .72rem; font-weight: 800; letter-spacing: .05em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .notes-field textarea {
+      width: 100%; border: 0; background: transparent; color: var(--ink);
+      font: inherit; font-weight: 600; font-size: .88rem; line-height: 1.35;
+      outline: none; resize: vertical; min-height: 2.6rem; max-height: 6.5rem;
+    }
+    .notes-field textarea::placeholder { color: #556273; font-weight: 600; }
+    .tax-box {
+      display: grid; gap: .28rem;
+      padding: .15rem 0 .1rem;
+    }
+    .tax-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      color: var(--muted); font-size: .8rem; font-weight: 700;
+    }
+    .tax-row strong {
+      color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 800;
+    }
+    .total-row.main strong { color: var(--gold); }
     .total-row {
       display: flex; justify-content: space-between; align-items: baseline;
     }
@@ -621,10 +650,18 @@
             <label for="mesa">Mesa</label>
             <input id="mesa" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="nº de mesa" maxlength="4" autocomplete="off" />
           </div>
+          <div class="notes-field">
+            <label for="notes">Notas del pedido</label>
+            <textarea id="notes" rows="2" maxlength="280" placeholder="Ej. sin tomate, poco hecho, alergias…" autocomplete="off"></textarea>
+          </div>
         </div>
         <div class="lines" id="lines"><p class="empty">Pon el nº de mesa y toca productos.</p></div>
         <div class="check-f">
-          <div class="total-row"><span>Total</span><strong id="total">0,00 €</strong></div>
+          <div class="tax-box" id="taxBox">
+            <div class="tax-row"><span>Base imponible</span><strong id="base">0,00 €</strong></div>
+            <div class="tax-row"><span>IVA 10%</span><strong id="iva">0,00 €</strong></div>
+          </div>
+          <div class="total-row main"><span>Total (IVA incl.)</span><strong id="total">0,00 €</strong></div>
           <div class="tender" id="tender">
             <button type="button" data-cash="10">10 €</button>
             <button type="button" data-cash="20">20 €</button>
@@ -783,10 +820,12 @@
         cat: 'all',
         q: '',
         mesa: '',
+        notes: '',
         cart: {},
         hist: [],
         tables: {},
       }
+      const IVA_RATE = 0.10 // hostelería: comidas y bebidas 10%
 
       const all = () => catalog.flatMap((c) => c.items.map((i) => ({ ...i, catId: c.id })))
       const normalizeMesa = (v) => String(v || '').trim().replace(/\s+/g, '')
@@ -816,6 +855,7 @@
           state.tables[m] = {
             cart: state.cart,
             hist: state.hist,
+            notes: ($('notes')?.value || state.notes || '').trim(),
             paid: $('paid')?.value || '',
           }
         }
@@ -830,9 +870,11 @@
 
       function loadMesaIntoState(mesa) {
         const m = normalizeMesa(mesa)
-        const data = (m && state.tables[m]) || { cart: {}, hist: [], paid: '' }
+        const data = (m && state.tables[m]) || { cart: {}, hist: [], notes: '', paid: '' }
         state.cart = data.cart || {}
         state.hist = data.hist || []
+        state.notes = data.notes || ''
+        if ($('notes')) $('notes').value = state.notes
         if ($('paid')) $('paid').value = data.paid || ''
       }
 
@@ -843,6 +885,7 @@
           state.tables[prev] = {
             cart: state.cart,
             hist: state.hist,
+            notes: ($('notes')?.value || state.notes || '').trim(),
             paid: $('paid')?.value || '',
           }
         }
@@ -866,12 +909,20 @@
       }
 
       const lines = () => Object.values(state.cart)
+      const round2 = (n) => Math.round((+n + Number.EPSILON) * 100) / 100
       const totals = () => {
         const ls = lines()
+        const total = round2(ls.reduce((a, x) => a + x.qty * x.price, 0))
+        // Precios de carta con IVA incluido → desglose fiscal
+        const base = round2(total / (1 + IVA_RATE))
+        const iva = round2(total - base)
         return {
           ls,
           count: ls.reduce((a, x) => a + x.qty, 0),
-          total: ls.reduce((a, x) => a + x.qty * x.price, 0),
+          total,
+          base,
+          iva,
+          ivaRate: IVA_RATE,
         }
       }
 
@@ -902,16 +953,19 @@
         const m = normalizeMesa(state.mesa)
         const label = m ? ` de la mesa ${m}` : ''
         if (!confirm(`¿Vaciar la cuenta${label}?`)) return
-        state.cart = {}; state.hist = []; $('paid').value = ''
+        state.cart = {}; state.hist = []; state.notes = ''
+        if ($('notes')) $('notes').value = ''
+        if ($('paid')) $('paid').value = ''
         persist(); render(); closeTicket()
       }
 
       async function done() {
-        const { ls, total, count } = totals()
+        const { ls, total, count, base, iva } = totals()
         if (!count) return
         const m = normalizeMesa(state.mesa)
+        const notes = ($('notes')?.value || state.notes || '').trim()
         const mesaTxt = m ? `Mesa ${m}\n` : ''
-        if (!confirm(`${mesaTxt}Cobrado ${money(total)}\n\n¿Imprimir ticket, abrir cajón y cerrar esta cuenta?`)) return
+        if (!confirm(`${mesaTxt}Cobrado ${money(total)}\nIVA 10%: ${money(iva)}\n\n¿Imprimir ticket, abrir cajón y cerrar esta cuenta?`)) return
 
         // Snapshot antes de vaciar (para el ticket)
         const cartItems = ls.map((l) => ({ name: l.name, qty: l.qty, price: l.price }))
@@ -919,6 +973,10 @@
         const paid = parseFloat(String(paidRaw).replace(',', '.'))
         const meta = {
           mesa: m || undefined,
+          notes: notes || undefined,
+          base,
+          iva,
+          ivaRate: IVA_RATE,
           paid: Number.isFinite(paid) ? paid : undefined,
           change: Number.isFinite(paid) ? paid - total : undefined,
         }
@@ -928,8 +986,10 @@
           await window.CasaTorinoPrint.printReceipt(cartItems, total, meta)
         }
 
-        state.cart = {}; state.hist = []; $('paid').value = ''
-        if (m) state.tables[m] = { cart: {}, hist: [], paid: '' }
+        state.cart = {}; state.hist = []; state.notes = ''
+        if ($('notes')) $('notes').value = ''
+        if ($('paid')) $('paid').value = ''
+        if (m) state.tables[m] = { cart: {}, hist: [], notes: '', paid: '' }
         persist(); render(); closeTicket()
       }
 
@@ -995,11 +1055,13 @@
       }
 
       function renderTicket() {
-        const { ls, total, count } = totals()
+        const { ls, total, count, base, iva } = totals()
         const m = normalizeMesa(state.mesa || $('mesa')?.value)
         $('btnUndo').disabled = !state.hist.length
         $('fabCount').textContent = String(count)
         $('fabTotal').textContent = money(total)
+        if ($('base')) $('base').textContent = money(base)
+        if ($('iva')) $('iva').textContent = money(iva)
         $('total').textContent = money(total)
         if ($('fabMesa')) $('fabMesa').textContent = m ? `Mesa ${m}` : ''
         $('lines').innerHTML = ls.length
@@ -1068,6 +1130,12 @@
       })
       bindMesa($('mesa'))
       bindMesa($('mesaTop'))
+      if ($('notes')) {
+        $('notes').addEventListener('input', () => {
+          state.notes = $('notes').value
+          persist()
+        })
+      }
       $('btnClear').onclick = clearCart
       $('btnClear2').onclick = clearCart
       $('btnDone').onclick = done
