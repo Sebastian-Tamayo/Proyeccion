@@ -89,7 +89,7 @@ async function writeEdge(items) {
 }
 
 async function loadItems() {
-  if (memory && Array.isArray(memory.items)) return memory.items
+  // Siempre leer de Edge Config para no servir datos viejos entre instancias
   const items = await readEdge()
   memory = { items, updatedAt: Date.now() }
   return items
