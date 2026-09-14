@@ -260,13 +260,32 @@
       left: 0; right: 0; bottom: 0;
       width: 100%;
       max-width: 100vw;
-      height: min(88dvh, 780px);
+      /* Altura usable dejando sitio a la barra del navegador móvil */
+      height: auto;
+      max-height: calc(100dvh - 12px);
       border-radius: 22px 22px 0 0;
       z-index: 50;
       box-shadow: var(--shadow);
       border: 1px solid var(--line2);
       border-bottom: 0;
-      padding-bottom: var(--safe-b);
+      /* Scroll de TODO el panel (notas + líneas + botones) */
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      /* Espacio extra bajo Vaciar/Cobrado (safe-area + chrome Safari/Chrome) */
+      padding-bottom: calc(1.4rem + var(--safe-b) + 72px);
+    }
+    body.check-open {
+      overflow: hidden !important;
+      touch-action: none;
+    }
+    body.check-open .app {
+      pointer-events: none;
+    }
+    body.check-open .check.open,
+    body.check-open .backdrop {
+      pointer-events: auto;
     }
     .check-h {
       padding: 1rem 1rem .85rem;
@@ -305,7 +324,12 @@
       font-variant-numeric: tabular-nums;
     }
     .mesa-field input::placeholder { color: #556273; font-weight: 700; font-size: 1rem; }
-    .lines { flex: 1; overflow: auto; padding: .35rem .75rem .75rem; }
+    .lines {
+      flex: 1 1 auto;
+      min-height: 4.5rem;
+      overflow: visible;
+      padding: .35rem .75rem .75rem;
+    }
     .line {
       display: grid; grid-template-columns: 1fr auto; gap: .4rem .7rem;
       padding: .75rem .55rem; border-radius: 14px;
@@ -331,8 +355,15 @@
     .check-f {
       border-top: 1px solid var(--line);
       background: rgba(0,0,0,.22);
-      padding: .85rem 1rem 1rem;
+      padding: .85rem 1rem 1.15rem;
       display: grid; gap: .7rem;
+      flex: 0 0 auto;
+    }
+    .check-f .actions {
+      padding-bottom: .15rem;
+    }
+    .check-f .btn {
+      min-height: 52px;
     }
 
     .notes-field {
@@ -479,10 +510,14 @@
       .menu { padding: .9rem 1rem 1.1rem; }
       .products { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
       .check {
-        display: flex; position: static; height: auto; width: auto; max-width: none;
+        display: flex; position: static; height: auto; max-height: none; width: auto; max-width: none;
         border-radius: 0; box-shadow: none; border: 0; border-left: 1px solid var(--line);
-        padding-bottom: 0;
+        padding-bottom: 0; overflow: hidden;
       }
+      .check.open { padding-bottom: 0; max-height: none; overflow: hidden; }
+      .lines { flex: 1 1 auto; min-height: 0; overflow: auto; -webkit-overflow-scrolling: touch; }
+      body.check-open { overflow: hidden !important; touch-action: auto; }
+      body.check-open .app { pointer-events: auto; }
       .grab, .fab, .backdrop { display: none !important; }
       .top-tools .mesa-chip { display: none; }
       .mesa-field input { text-align: left; }
@@ -1205,8 +1240,20 @@
       }
 
       function render() { renderCats(); renderProducts(); renderTicket() }
-      function openTicket() { $('ticket').classList.add('open'); $('backdrop').hidden = false }
-      function closeTicket() { $('ticket').classList.remove('open'); $('backdrop').hidden = true }
+      function openTicket() {
+        $('ticket').classList.add('open')
+        $('backdrop').hidden = false
+        document.body.classList.add('check-open')
+        // Lleva los botones a la vista si el panel ya estaba a medias
+        requestAnimationFrame(() => {
+          try { $('ticket')?.querySelector('.check-f')?.scrollIntoView({ block: 'nearest' }) } catch {}
+        })
+      }
+      function closeTicket() {
+        $('ticket').classList.remove('open')
+        $('backdrop').hidden = true
+        document.body.classList.remove('check-open')
+      }
 
       function tickClock() {
         const now = new Date()
