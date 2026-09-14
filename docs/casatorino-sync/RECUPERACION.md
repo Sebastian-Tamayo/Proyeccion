@@ -99,3 +99,10 @@ Root Directory del proyecto Vercel: `reservas`.
 2. Deploy solo: `cd <monorepo> && vercel deploy --prod --scope sebas3212` (rootDirectory = `reservas`).
 3. Nunca restaurar CrudCrud / `RESERVAS_STORE_URL` vacío.
 4. Antes de publicar paquetes “safe” a CasaTorinoApp, verificar que `reservas/server/reservas-store.js` mencione `Edge Config`.
+
+### Cocina (KDS)
+- URL: `/cocina.html` (Gestión interna → Cocina)
+- PIN: mismo que TPV (`TPV_PIN` / cookie `ct_tpv_session`)
+- Store Edge Config clave `kitchen` (misma Edge Config que el TPV)
+- API: `/api/kitchen` · sync cliente `kitchenSync.js` (poll ~1s)
+- TPV: botón **Enviar a Cocina** (solo `categoryType: comida`)
