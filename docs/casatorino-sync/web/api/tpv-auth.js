@@ -10,7 +10,10 @@
 
 const PIN = process.env.TPV_PIN || ''
 const COOKIE = 'ct_tpv_session'
-const MAX_AGE = 60 * 60 * 12 // 12 h
+// Sesión corta: solo para API tras introducir PIN en esta visita.
+// Las pantallas siempre vuelven a pedir PIN al abrirse.
+const MAX_AGE = 60 * 60 * 2 // 2 h
+
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', res.req?.headers?.origin || '*')

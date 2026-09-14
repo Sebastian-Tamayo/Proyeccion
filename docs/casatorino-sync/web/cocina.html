@@ -329,7 +329,7 @@
       }
 
       function unlock() {
-        try { sessionStorage.setItem(AUTH_KEY, '1') } catch {}
+        try { sessionStorage.removeItem(AUTH_KEY) } catch {}
         document.body.classList.remove('kds-locked')
         const gate = $('gate')
         if (gate) gate.hidden = true
@@ -341,15 +341,18 @@
       }
 
       async function bootAuth() {
+        // Siempre pedir PIN al abrir (no reutilizar cookie/sesión previa)
         try {
-          if (sessionStorage.getItem(AUTH_KEY) === '1') {
-            const r = await fetch('/api/tpv-auth', { credentials: 'same-origin', cache: 'no-store' })
-            const data = await r.json().catch(() => ({}))
-            if (data.ok) return unlock()
-            try { sessionStorage.removeItem(AUTH_KEY) } catch {}
-          }
+          sessionStorage.removeItem(AUTH_KEY)
+          await fetch('/api/tpv-auth', {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            cache: 'no-store',
+          })
         } catch {}
         document.body.classList.add('kds-locked')
+        const gate = $('gate')
+        if (gate) gate.hidden = false
       }
 
       $('gatePad')?.addEventListener('click', (e) => {

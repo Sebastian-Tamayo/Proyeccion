@@ -781,7 +781,7 @@
       }
 
       function unlockTpv() {
-        try { sessionStorage.setItem(AUTH_KEY, '1') } catch {}
+        try { sessionStorage.removeItem(AUTH_KEY) } catch {}
         document.body.classList.remove('tpv-locked')
         const gate = $('gate')
         if (gate) gate.hidden = true
@@ -854,18 +854,19 @@
       })
 
       paintPinDots()
+      // Siempre pedir PIN al abrir (no reutilizar cookie/sesión previa)
       ;(async () => {
         try {
-          if (sessionStorage.getItem(AUTH_KEY) === '1') {
-            const r = await fetch('/api/tpv-auth', { credentials: 'same-origin', cache: 'no-store' })
-            const data = await r.json().catch(() => ({}))
-            if (r.ok && data.ok) {
-              unlockTpv()
-              return
-            }
-            try { sessionStorage.removeItem(AUTH_KEY) } catch {}
-          }
+          sessionStorage.removeItem(AUTH_KEY)
+          await fetch('/api/tpv-auth', {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            cache: 'no-store',
+          })
         } catch {}
+        document.body.classList.add('tpv-locked')
+        const gate = $('gate')
+        if (gate) gate.hidden = false
         paintPinDots()
       })()
 
