@@ -58,10 +58,14 @@
         if (typeof onUpdate === 'function') {
           onUpdate({
             orders,
+            history: Array.isArray(remote.history) ? remote.history : [],
+            historyDay: remote.historyDay || '',
+            historyCount: Number(remote.historyCount || 0),
             lastCompleted: remote.lastCompleted || null,
             canUndo: Boolean(remote.canUndo),
             updatedAt: remoteAt,
             newOrders,
+            purgeAt: remote.purgeAt || '09:00 Europe/Madrid',
           })
         }
       }

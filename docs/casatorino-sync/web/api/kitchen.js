@@ -2,20 +2,22 @@
  * Casa Torino — Kitchen Display (KDS)
  * Persistencia: Vercel Edge Config (misma que TPV), clave `kitchen`.
  *
- * GET  /api/kitchen              → { orders, lastCompleted, updatedAt }
- * POST /api/kitchen              → { action: 'create'|'complete'|'undo', ... }
+ * GET  /api/kitchen  → { orders, history, historyDay, lastCompleted, canUndo, updatedAt }
+ * POST /api/kitchen  → { action: 'create'|'complete'|'undo', ... }
  *
- * Estados:
- *   pending_kitchen  → visible en monitor de cocina
- *   ready            → completado (oculto); se guarda en lastCompleted para Deshacer
+ * Histórico del día:
+ *   - Cada pedido marcado como Listo entra en `history`
+ *   - Día de cocina: 09:00 → 09:00 (Europe/Madrid)
+ *   - Al cruzar las 09:00 se vacía automáticamente
  */
 const EDGE_ID = process.env.TPV_EDGE_CONFIG_ID
 const TEAM_ID = process.env.TPV_TEAM_ID
 const VERCEL_TOKEN = process.env.TPV_VERCEL_TOKEN
 const SYNC_KEY = process.env.TPV_SYNC_KEY || ''
 const ITEM_KEY = 'kitchen'
+const HISTORY_MAX = 300
 
-/** @type {null | { orders: any[], lastCompleted: any|null, updatedAt: number }} */
+/** @type {null | object} */
 let memory = null
 
 function cors(req, res) {
@@ -30,8 +32,65 @@ function cors(req, res) {
   res.setHeader('Cache-Control', 'no-store')
 }
 
+/** Día de cocina: de 09:00 a 09:00 (Europe/Madrid). */
+function kitchenDayId(now = new Date()) {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    hourCycle: 'h23',
+  })
+  const parts = Object.fromEntries(
+    fmt
+      .formatToParts(now)
+      .filter((p) => p.type !== 'literal')
+      .map((p) => [p.type, p.value]),
+  )
+  let y = Number(parts.year)
+  let m = Number(parts.month)
+  let d = Number(parts.day)
+  const hour = Number(parts.hour)
+  if (hour < 9) {
+    const dt = new Date(Date.UTC(y, m - 1, d))
+    dt.setUTCDate(dt.getUTCDate() - 1)
+    y = dt.getUTCFullYear()
+    m = dt.getUTCMonth() + 1
+    d = dt.getUTCDate()
+  }
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
 function emptyState() {
-  return { orders: [], lastCompleted: null, updatedAt: 0 }
+  return {
+    orders: [],
+    lastCompleted: null,
+    history: [],
+    historyDay: kitchenDayId(),
+    updatedAt: 0,
+  }
+}
+
+function applyDayRollover(state) {
+  const day = kitchenDayId()
+  const historyDay = state.historyDay || day
+  const history = Array.isArray(state.history) ? state.history : []
+  if (historyDay !== day) {
+    return {
+      ...state,
+      history: [],
+      historyDay: day,
+      updatedAt: Date.now(),
+      _rolled: true,
+    }
+  }
+  return {
+    ...state,
+    history,
+    historyDay: day,
+    _rolled: false,
+  }
 }
 
 function hasTpvSession(req) {
@@ -67,7 +126,6 @@ async function readEdge() {
     headers: { Authorization: `Bearer ${VERCEL_TOKEN}` },
     cache: 'no-store',
   })
-  // 404 / 204 = clave aún no creada
   if (r.status === 404 || r.status === 204) return emptyState()
   if (!r.ok) throw new Error('edge GET ' + r.status)
   const text = await r.text()
@@ -83,15 +141,24 @@ async function readEdge() {
       ? data.value
       : data
   if (!value || typeof value !== 'object') return emptyState()
-  return {
+  return applyDayRollover({
     orders: Array.isArray(value.orders) ? value.orders : [],
     lastCompleted: value.lastCompleted || null,
+    history: Array.isArray(value.history) ? value.history : [],
+    historyDay: value.historyDay || kitchenDayId(),
     updatedAt: Number(value.updatedAt || 0),
-  }
+  })
 }
 
 async function writeEdge(state) {
   if (!EDGE_ID || !VERCEL_TOKEN) throw new Error('missing Edge Config env')
+  const payload = {
+    orders: state.orders || [],
+    lastCompleted: state.lastCompleted || null,
+    history: state.history || [],
+    historyDay: state.historyDay || kitchenDayId(),
+    updatedAt: state.updatedAt || Date.now(),
+  }
   const url =
     `https://api.vercel.com/v1/edge-config/${EDGE_ID}/items` +
     (TEAM_ID ? `?teamId=${TEAM_ID}` : '')
@@ -104,7 +171,7 @@ async function writeEdge(state) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        items: [{ operation: 'upsert', key: ITEM_KEY, value: state }],
+        items: [{ operation: 'upsert', key: ITEM_KEY, value: payload }],
       }),
     })
     if (r.ok) return
@@ -118,6 +185,18 @@ async function writeEdge(state) {
 
 async function loadFresh() {
   const remote = await readEdge()
+  if (remote._rolled) {
+    const next = { ...remote }
+    delete next._rolled
+    memory = next
+    try {
+      await writeEdge(next)
+    } catch (err) {
+      console.warn('[kitchen] rollover persist', err)
+    }
+    return next
+  }
+  delete remote._rolled
   memory = remote
   return remote
 }
@@ -125,6 +204,14 @@ async function loadFresh() {
 function sanitizeItems(raw) {
   if (!Array.isArray(raw)) return []
   return raw
+    .filter((it) => {
+      const name = String(it?.name || '').trim()
+      if (!name) return false
+      const t = String(it?.categoryType || '').trim().toLowerCase()
+      const catId = String(it?.catId || '').trim().toLowerCase()
+      if (t === 'bebida' || t === 'drink' || catId === 'bebidas') return false
+      return true
+    })
     .map((it) => ({
       id: String(it.id || ''),
       name: String(it.name || '').trim(),
@@ -133,7 +220,32 @@ function sanitizeItems(raw) {
       catId: String(it.catId || ''),
       note: String(it.note || '').trim(),
     }))
-    .filter((it) => it.name && it.categoryType === 'comida')
+}
+
+function publicPayload(state) {
+  const pending = (state.orders || []).filter(
+    (o) => o && o.status === 'pending_kitchen',
+  )
+  const history = Array.isArray(state.history) ? state.history : []
+  return {
+    orders: pending,
+    history,
+    historyDay: state.historyDay || kitchenDayId(),
+    historyCount: history.length,
+    lastCompleted: state.lastCompleted || null,
+    updatedAt: state.updatedAt || 0,
+    canUndo: Boolean(state.lastCompleted),
+    purgeAt: '09:00 Europe/Madrid',
+  }
+}
+
+function pushHistory(history, order) {
+  const next = [order, ...(history || []).filter((h) => h && h.id !== order.id)]
+  return next.slice(0, HISTORY_MAX)
+}
+
+function removeFromHistory(history, id) {
+  return (history || []).filter((h) => h && h.id !== id)
 }
 
 module.exports = async function handler(req, res) {
@@ -151,19 +263,9 @@ module.exports = async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const state = await loadFresh()
-      const pending = (state.orders || []).filter(
-        (o) => o && o.status === 'pending_kitchen',
-      )
       res.statusCode = 200
       res.setHeader('Content-Type', 'application/json')
-      return res.end(
-        JSON.stringify({
-          orders: pending,
-          lastCompleted: state.lastCompleted || null,
-          updatedAt: state.updatedAt || 0,
-          canUndo: Boolean(state.lastCompleted),
-        }),
-      )
+      return res.end(JSON.stringify(publicPayload(state)))
     }
 
     if (req.method === 'POST') {
@@ -172,6 +274,8 @@ module.exports = async function handler(req, res) {
       const state = await loadFresh()
       let orders = Array.isArray(state.orders) ? state.orders.slice() : []
       let lastCompleted = state.lastCompleted || null
+      let history = Array.isArray(state.history) ? state.history.slice() : []
+      const historyDay = state.historyDay || kitchenDayId()
 
       if (action === 'create') {
         const incoming = body.order || body
@@ -180,9 +284,7 @@ module.exports = async function handler(req, res) {
           res.statusCode = 400
           res.setHeader('Content-Type', 'application/json')
           return res.end(
-            JSON.stringify({
-              error: 'Sin productos de comida para cocina',
-            }),
+            JSON.stringify({ error: 'Sin productos de comida para cocina' }),
           )
         }
         const mesa = String(incoming.mesa || '').trim()
@@ -207,13 +309,15 @@ module.exports = async function handler(req, res) {
         const next = {
           orders,
           lastCompleted,
+          history,
+          historyDay,
           updatedAt: Date.now(),
         }
         memory = next
         await writeEdge(next)
         res.statusCode = 201
         res.setHeader('Content-Type', 'application/json')
-        return res.end(JSON.stringify({ ok: true, order, ...next, canUndo: Boolean(lastCompleted) }))
+        return res.end(JSON.stringify({ ok: true, order, ...publicPayload(next) }))
       }
 
       if (action === 'complete') {
@@ -231,20 +335,20 @@ module.exports = async function handler(req, res) {
         }
         orders.splice(idx, 1)
         lastCompleted = done
-        const next = { orders, lastCompleted, updatedAt: Date.now() }
+        history = pushHistory(history, done)
+        const next = {
+          orders,
+          lastCompleted,
+          history,
+          historyDay,
+          updatedAt: Date.now(),
+        }
         memory = next
         await writeEdge(next)
         res.statusCode = 200
         res.setHeader('Content-Type', 'application/json')
         return res.end(
-          JSON.stringify({
-            ok: true,
-            order: done,
-            orders: orders.filter((o) => o.status === 'pending_kitchen'),
-            lastCompleted,
-            updatedAt: next.updatedAt,
-            canUndo: true,
-          }),
+          JSON.stringify({ ok: true, order: done, ...publicPayload(next) }),
         )
       }
 
@@ -260,24 +364,23 @@ module.exports = async function handler(req, res) {
           completedAt: null,
           restoredAt: new Date().toISOString(),
         }
-        // Evitar duplicar si ya está pending
         orders = orders.filter((o) => o.id !== restored.id)
         orders = [restored, ...orders]
+        history = removeFromHistory(history, restored.id)
         lastCompleted = null
-        const next = { orders, lastCompleted, updatedAt: Date.now() }
+        const next = {
+          orders,
+          lastCompleted,
+          history,
+          historyDay,
+          updatedAt: Date.now(),
+        }
         memory = next
         await writeEdge(next)
         res.statusCode = 200
         res.setHeader('Content-Type', 'application/json')
         return res.end(
-          JSON.stringify({
-            ok: true,
-            order: restored,
-            orders: orders.filter((o) => o.status === 'pending_kitchen'),
-            lastCompleted: null,
-            updatedAt: next.updatedAt,
-            canUndo: false,
-          }),
+          JSON.stringify({ ok: true, order: restored, ...publicPayload(next) }),
         )
       }
 

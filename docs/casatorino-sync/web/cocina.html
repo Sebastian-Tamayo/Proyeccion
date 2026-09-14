@@ -82,7 +82,7 @@
     }
     .pill.live i { color: var(--ok); animation: pulse 1.4s infinite; }
     @keyframes pulse { 50% { opacity: .35; } }
-    .btn-undo, .btn-icon {
+    .btn-undo, .btn-icon, .btn-hist, .btn-hist {
       display: inline-flex; align-items: center; gap: .45rem;
       height: 48px; padding: 0 .95rem; border-radius: 12px;
       border: 1px solid var(--line); background: var(--card2);
@@ -90,6 +90,8 @@
     }
     .btn-undo { background: #2a1f0f; border-color: #6b4e16; color: var(--accent); }
     .btn-undo:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-hist, .btn-hist { background: #122033; border-color: #2b4a6a; color: #9ed0ff; }
+    .btn-hist.on, .btn-hist.on { background: #1d4ed8; border-color: #60a5fa; color: #fff; }
     .btn-icon { width: 48px; justify-content: center; padding: 0; text-decoration: none; }
 
     .board {
@@ -98,6 +100,33 @@
         linear-gradient(180deg, rgba(245,197,24,.04), transparent 120px),
         var(--bg);
     }
+    .history-panel { display: none; }
+    body.show-history .grid { display: none; }
+    body.show-history .history-panel { display: block; }
+    .hist-meta {
+      display: flex; flex-wrap: wrap; gap: .55rem; align-items: center;
+      margin-bottom: .85rem; color: var(--muted); font-weight: 700; font-size: .9rem;
+    }
+    .hist-meta strong { color: var(--ink); }
+    .hist-list { display: grid; gap: .65rem; }
+    .hist-item {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 14px; padding: .85rem 1rem;
+      display: grid; gap: .45rem;
+    }
+    .hist-item-h {
+      display: flex; justify-content: space-between; gap: .75rem; align-items: baseline;
+    }
+    .hist-mesa { font-size: 1.35rem; font-weight: 900; }
+    .hist-time { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .hist-items { color: #d7e0ea; font-weight: 700; line-height: 1.35; }
+    .hist-note { color: var(--danger); font-style: italic; font-weight: 700; font-size: .92rem; }
+    .hist-empty {
+      min-height: 40dvh; display: grid; place-items: center; text-align: center;
+      color: var(--muted); gap: .45rem;
+    }
+    .hist-empty i { font-size: 2rem; color: #3b4a5c; }
+    .hist-empty strong { display: block; color: #d7e0ea; font-size: 1.2rem; }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -237,6 +266,9 @@
       <div class="pill live" id="livePill"><i class="fa-solid fa-circle"></i> En vivo</div>
       <div class="pill" id="clock">--:--</div>
       <div class="pill" id="countPill">0 pedidos</div>
+      <button class="btn-hist" id="btnHistory" type="button" title="Pedidos servidos hoy">
+        <i class="fa-solid fa-clock-rotate-left"></i> Histórico
+      </button>
       <button class="btn-undo" id="btnUndo" type="button" disabled title="Recuperar último completado">
         <i class="fa-solid fa-rotate-left"></i> Deshacer
       </button>
@@ -244,6 +276,10 @@
     </header>
     <main class="board">
       <div class="grid" id="grid"></div>
+      <div class="history-panel" id="historyPanel">
+        <div class="hist-meta" id="histMeta"></div>
+        <div class="hist-list" id="histList"></div>
+      </div>
     </main>
   </div>
   <div class="toast" id="toast" role="status"></div>
@@ -256,9 +292,12 @@
       let pinBuf = ''
       let started = false
       let orders = []
+      let history = []
+      let historyDay = ''
       let canUndo = false
       let flashIds = new Set()
       let completing = new Set()
+      let showHistory = false
 
       function paintPinDots() {
         ;($('gateDots')?.querySelectorAll('i') || []).forEach((d, i) => {
@@ -408,11 +447,77 @@
         return [...map.values()]
       }
 
+      function dayLabel(day) {
+        if (!day) return 'hoy'
+        const [y, m, d] = String(day).split('-').map(Number)
+        if (!y || !m || !d) return day
+        try {
+          return new Date(y, m - 1, d).toLocaleDateString('es-ES', {
+            weekday: 'long', day: 'numeric', month: 'long',
+          })
+        } catch { return day }
+      }
+
+      function timeLabel(iso) {
+        try {
+          return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+        } catch { return '--:--' }
+      }
+
+      function applyHistory(payload) {
+        if (!payload) return
+        if (Array.isArray(payload.history)) history = payload.history
+        if (payload.historyDay) historyDay = payload.historyDay
+      }
+
+      function renderHistory() {
+        const meta = $('histMeta')
+        const list = $('histList')
+        if (!meta || !list) return
+        meta.innerHTML = `
+          <span><strong>${history.length}</strong> servidos</span>
+          <span>·</span>
+          <span>Día: <strong>${escapeHtml(dayLabel(historyDay))}</strong></span>
+          <span>·</span>
+          <span>Se borra a las <strong>09:00</strong></span>`
+        if (!history.length) {
+          list.innerHTML = `<div class="hist-empty"><div>
+            <i class="fa-solid fa-clipboard-list"></i>
+            <strong>Sin pedidos servidos aún</strong>
+            <div>Cuando pulses Listo, el pedido quedará aquí hasta las 09:00 del día siguiente.</div>
+          </div></div>`
+          return
+        }
+        list.innerHTML = history.map((o) => {
+          const items = (o.items || [])
+            .map((it) => `${it.qty}× ${escapeHtml(it.name)}${it.note ? ` <em>(${escapeHtml(it.note)})</em>` : ''}`)
+            .join(' · ')
+          const notes = o.notes ? `<div class="hist-note">${escapeHtml(o.notes)}</div>` : ''
+          return `<article class="hist-item">
+            <div class="hist-item-h">
+              <div class="hist-mesa">Mesa ${escapeHtml(o.mesa)}</div>
+              <div class="hist-time">Listo ${timeLabel(o.completedAt || o.createdAt)}</div>
+            </div>
+            <div class="hist-items">${items || '—'}</div>
+            ${notes}
+          </article>`
+        }).join('')
+      }
+
       function render() {
         const grid = $('grid')
         const count = $('countPill')
         if (count) count.textContent = `${orders.length} pedido${orders.length === 1 ? '' : 's'}`
         $('btnUndo').disabled = !canUndo
+        const histBtn = $('btnHistory')
+        if (histBtn) {
+          histBtn.classList.toggle('on', showHistory)
+          histBtn.innerHTML = showHistory
+            ? `<i class="fa-solid fa-fire-burner"></i> En vivo (${orders.length})`
+            : `<i class="fa-solid fa-clock-rotate-left"></i> Histórico (${history.length})`
+        }
+        document.body.classList.toggle('show-history', showHistory)
+        if (showHistory) return renderHistory()
         if (!orders.length) {
           grid.innerHTML = `<div class="empty"><div><i class="fa-solid fa-kitchen-set"></i><strong>Sin pedidos de cocina</strong><div>Esperando comandas de comida desde el TPV…</div></div></div>`
           return
@@ -477,6 +582,7 @@
           const data = await window.CasaTorinoKitchenSync.complete(id)
           orders = Array.isArray(data.orders) ? data.orders : orders.filter((o) => o.id !== id)
           canUndo = Boolean(data.canUndo)
+          applyHistory(data)
           flashIds.delete(id)
           toast(`Mesa ${data.order?.mesa || ''} marcada como lista`)
           render()
@@ -494,6 +600,7 @@
           const data = await window.CasaTorinoKitchenSync.undo()
           orders = Array.isArray(data.orders) ? data.orders : orders
           canUndo = Boolean(data.canUndo)
+          applyHistory(data)
           if (data.order?.id) {
             flashIds.add(data.order.id)
             setTimeout(() => { flashIds.delete(data.order.id); render() }, 1800)
@@ -508,6 +615,10 @@
 
       function startKds() {
         $('btnUndo').onclick = undoLast
+        $('btnHistory').onclick = () => {
+          showHistory = !showHistory
+          render()
+        }
         $('grid').addEventListener('click', (e) => {
           const btn = e.target.closest('[data-complete]')
           if (btn) complete(btn.dataset.complete)
@@ -515,10 +626,10 @@
         window.CasaTorinoKitchenSync.start((payload) => {
           orders = payload.orders || []
           canUndo = Boolean(payload.canUndo)
+          applyHistory(payload)
           if (payload.newOrders?.length) {
             payload.newOrders.forEach((o) => flashIds.add(o.id))
             beep()
-            try { navigator.vibrate?.([40, 40, 40]) } catch {}
             setTimeout(() => {
               payload.newOrders.forEach((o) => flashIds.delete(o.id))
               render()
