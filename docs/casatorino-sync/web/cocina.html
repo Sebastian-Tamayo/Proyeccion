@@ -294,6 +294,7 @@
         document.body.classList.remove('kds-locked')
         const gate = $('gate')
         if (gate) gate.hidden = true
+        try { armAudio() } catch {}
         if (!started) {
           started = true
           startKds()
@@ -339,31 +340,47 @@
           const Ctx = window.AudioContext || window.webkitAudioContext
           if (!Ctx) return
           const ctx = beep._ctx || (beep._ctx = new Ctx())
-          const o = ctx.createOscillator()
-          const g = ctx.createGain()
-          o.type = 'sine'
-          o.frequency.value = 880
-          g.gain.value = 0.0001
-          o.connect(g); g.connect(ctx.destination)
-          const t = ctx.currentTime
-          g.gain.exponentialRampToValueAtTime(0.18, t + 0.02)
-          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28)
-          o.start(t); o.stop(t + 0.3)
-          // second chirp
-          setTimeout(() => {
-            const o2 = ctx.createOscillator()
-            const g2 = ctx.createGain()
-            o2.type = 'sine'
-            o2.frequency.value = 1175
-            g2.gain.value = 0.0001
-            o2.connect(g2); g2.connect(ctx.destination)
-            const t2 = ctx.currentTime
-            g2.gain.exponentialRampToValueAtTime(0.16, t2 + 0.02)
-            g2.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.22)
-            o2.start(t2); o2.stop(t2 + 0.24)
-          }, 140)
+          if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+
+          // Alarma cocina: 3 rachas agudas (square) + eco grave
+          const pattern = [
+            { f: 1480, dur: 0.16, gap: 0.07, vol: 0.28 },
+            { f: 990,  dur: 0.14, gap: 0.07, vol: 0.26 },
+            { f: 1480, dur: 0.16, gap: 0.18, vol: 0.30 },
+            { f: 1480, dur: 0.16, gap: 0.07, vol: 0.28 },
+            { f: 990,  dur: 0.14, gap: 0.07, vol: 0.26 },
+            { f: 1760, dur: 0.22, gap: 0.00, vol: 0.32 },
+          ]
+          let t = ctx.currentTime + 0.01
+          for (const step of pattern) {
+            const o = ctx.createOscillator()
+            const g = ctx.createGain()
+            o.type = 'square'
+            o.frequency.setValueAtTime(step.f, t)
+            g.gain.setValueAtTime(0.0001, t)
+            g.gain.exponentialRampToValueAtTime(step.vol, t + 0.015)
+            g.gain.exponentialRampToValueAtTime(0.0001, t + step.dur)
+            o.connect(g)
+            g.connect(ctx.destination)
+            o.start(t)
+            o.stop(t + step.dur + 0.02)
+            t += step.dur + step.gap
+          }
+          try { navigator.vibrate?.([120, 60, 120, 60, 180, 80, 220]) } catch {}
         } catch {}
       }
+
+      // Desbloquear audio en el primer toque (iOS/Android)
+      function armAudio() {
+        try {
+          const Ctx = window.AudioContext || window.webkitAudioContext
+          if (!Ctx) return
+          const ctx = beep._ctx || (beep._ctx = new Ctx())
+          if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+        } catch {}
+      }
+      document.addEventListener('pointerdown', armAudio, { once: true, passive: true })
+      document.addEventListener('keydown', armAudio, { once: true })
 
       function elapsedLabel(iso) {
         const ms = Date.now() - new Date(iso).getTime()
