@@ -70,3 +70,11 @@ curl -fsSL https://raw.githubusercontent.com/Sebastian-Tamayo/Proyeccion/main/do
 - El PIN se valida en `/api/tpv-auth` contra `TPV_PIN` (servidor). **No está en el HTML.**
 - Tras login correcto: cookie HttpOnly `ct_tpv_session` (~12 h).
 - Sync móvil↔PC: `/api/tpv-sync` + Edge Config.
+
+### Reservas — store estable
+Desde 2026-09 las reservas **ya no usan CrudCrud** (petaba al superar el límite).
+Usan **Vercel Edge Config**. En el proyecto `reservas-casatorino` deben existir:
+- `RESERVAS_EDGE_CONFIG_ID` (o `TPV_EDGE_CONFIG_ID`)
+- `RESERVAS_TEAM_ID` (o `TPV_TEAM_ID`)
+- `RESERVAS_VERCEL_TOKEN` (o `TPV_VERCEL_TOKEN`)
+Root Directory del proyecto Vercel: `reservas`.
