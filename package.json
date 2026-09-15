@@ -1,0 +1,9 @@
+{
+  "name": "casatorino-app",
+  "private": true,
+  "description": "Ecosistema Casa Torino (web + TPV + cocina + reservas + erp)",
+  "scripts": {
+    "assert:light": "bash web/scripts/assert-light-theme.sh",
+    "deploy:web": "bash web/scripts/deploy-web.sh"
+  }
+}

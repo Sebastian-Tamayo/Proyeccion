@@ -1,0 +1,3279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+  <title>TPV · Casa Torino</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#0b0f14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --bg2: #111820;
+      --panel: #151c26;
+      --card: #1a2330;
+      --card2: #202b3b;
+      --ink: #f5f7fb;
+      --muted: #8b98a8;
+      --line: rgba(255,255,255,.08);
+      --line2: rgba(255,255,255,.12);
+      --gold: #f5c518;
+      --gold-dim: rgba(245,197,24,.16);
+      --ok: #2dd46f;
+      --ok-dim: rgba(45,212,111,.16);
+      --danger: #ff6b6b;
+      --blue: #5b9dff;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+      --check-w: min(480px, 44vw);
+      --rail-w: 92px;
+      --radius: 18px;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+    }
+    * { box-sizing: border-box; }
+    html { height: 100%; touch-action: pan-y; }
+    html, body { max-width: 100%; }
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      /* Scroll con el dedo (no solo barra de ratón) */
+      touch-action: pan-y;
+      -ms-touch-action: pan-y;
+      /* Móvil: la página entera debe poder moverse (scroll).
+         En escritorio se vuelve a bloquear abajo en el @media. */
+      overflow-x: clip;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
+    /* Controles: manipulation = toque rápido; el scroll lo hace el contenedor nativo */
+    button, a, .cat, .prod, .fab, .btn, .icon-btn, .link, .pickup-card,
+    .q button, .tender button, .btn-pick, .btn-j, .chip, .gate-key,
+    summary {
+      touch-action: manipulation;
+      -ms-touch-action: manipulation;
+      -webkit-touch-callout: none;
+      cursor: pointer;
+    }
+    .mesa-field, .notes-field, .pay-box, .search, .mesa-chip {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .mesa-field, .notes-field, .pay-box {
+      cursor: text;
+    }
+    /* Zonas con scroll: gestos verticales con el dedo */
+    .menu, .lines, .rail, .check-f, .check.open, .workspace,
+    .jornada-modal, .jornada-card, .gate-card, .course-card, .app {
+      touch-action: pan-y;
+      -ms-touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+    .rail {
+      /* En móvil las categorías también se deslizan en horizontal */
+      touch-action: pan-x pan-y;
+      -ms-touch-action: pan-x pan-y;
+    }
+
+    /*
+      TPV Windows / pantalla ancha: gesto de arrastre con el dedo.
+      SOLO en layout de caja (≥1024px). En móvil touch-action:none
+      bloquea el scroll nativo de la página y deja la UI trabada.
+    */
+    @media (min-width: 1024px) {
+      html.tpv-touch-scroll .menu,
+      html.tpv-touch-scroll .rail,
+      html.tpv-touch-scroll .lines,
+      html.tpv-touch-scroll .check-f,
+      html.tpv-touch-scroll .check,
+      html.tpv-touch-scroll .jornada-card {
+        touch-action: none !important;
+        -ms-touch-action: none !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+      html.tpv-touch-scroll .menu,
+      html.tpv-touch-scroll .rail,
+      html.tpv-touch-scroll .lines,
+      html.tpv-touch-scroll .check-f,
+      html.tpv-touch-scroll .jornada-card {
+        overflow: auto !important;
+      }
+      html.tpv-touch-scroll .menu *,
+      html.tpv-touch-scroll .rail *,
+      html.tpv-touch-scroll .lines *,
+      html.tpv-touch-scroll .check-f *,
+      html.tpv-touch-scroll .check * {
+        touch-action: none !important;
+        -ms-touch-action: none !important;
+      }
+      html.tpv-touch-scroll input,
+      html.tpv-touch-scroll textarea,
+      html.tpv-touch-scroll select {
+        touch-action: manipulation !important;
+        -ms-touch-action: manipulation !important;
+      }
+    }
+    /* Campos editables: teclado virtual Windows (no interferir con el gesto) */
+    input, textarea, select {
+      font: inherit;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      -ms-user-select: text !important;
+      -webkit-touch-callout: default;
+      touch-action: manipulation !important;
+      -ms-touch-action: manipulation !important;
+      cursor: text;
+      pointer-events: auto !important;
+      -webkit-user-modify: read-write;
+    }
+    input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"] {
+      cursor: pointer;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+    }
+    button, input { font: inherit; }
+    .app {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      padding-top: var(--safe-t);
+      background:
+        radial-gradient(900px 420px at 8% -10%, rgba(245,197,24,.09), transparent 55%),
+        radial-gradient(700px 380px at 100% 0%, rgba(91,157,255,.08), transparent 50%),
+        var(--bg);
+    }
+
+    /* —— Top bar —— */
+    .topbar {
+      display: flex; align-items: center; gap: .55rem;
+      padding: .65rem .7rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(11,15,20,.92);
+      backdrop-filter: blur(16px);
+      z-index: 60; /* por encima de avisos antiguos; mesa siempre usable */
+      min-width: 0;
+      max-width: 100%;
+      position: sticky; top: 0;
+    }
+    .mesa-chip {
+      position: relative;
+      z-index: 61;
+    }
+    .icon-btn {
+      width: 42px; height: 42px; border-radius: 14px;
+      border: 1px solid var(--line2); background: var(--card);
+      color: var(--ink); display: grid; place-items: center;
+      text-decoration: none; cursor: pointer; flex: 0 0 auto;
+      transition: transform .12s ease, background .12s ease;
+    }
+    .icon-btn:active { transform: scale(.96); background: var(--card2); }
+    .brand { display: flex; gap: .55rem; align-items: center; min-width: 0; flex: 1 1 auto; overflow: hidden; }
+    .brand img {
+      width: 38px; height: 38px; border-radius: 12px; object-fit: cover;
+      border: 1.5px solid rgba(245,197,24,.55);
+    }
+    .brand strong {
+      display: block; font-size: .92rem; letter-spacing: -.01em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .brand em {
+      display: block; font-style: normal; color: var(--muted);
+      font-size: .7rem; font-weight: 600;
+    }
+    .top-tools {
+      margin-left: auto; display: flex; align-items: center; gap: .4rem;
+      flex: 0 1 auto; min-width: 0; max-width: 100%;
+    }
+    .clock {
+      color: var(--muted); font-weight: 700; font-size: .8rem;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .search {
+      position: relative; width: min(280px, 34vw);
+    }
+    .search i {
+      position: absolute; left: .8rem; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: .85rem; pointer-events: none;
+    }
+    .search input {
+      width: 100%; border: 1px solid var(--line2); background: var(--card);
+      color: var(--ink); border-radius: 999px; padding: .65rem .9rem .65rem 2.2rem;
+      font-weight: 600; outline: none;
+    }
+    .search input:focus { border-color: rgba(245,197,24,.55); box-shadow: 0 0 0 3px var(--gold-dim); }
+    .mesa-chip {
+      display: flex; align-items: center; gap: .4rem;
+      background: var(--card); border: 1px solid var(--line2);
+      border-radius: 999px; padding: .28rem .45rem .28rem .7rem;
+      position: relative;
+      z-index: 61; /* por si un aviso se solapa, Mesa sigue usable */
+    }
+    .mesa-chip span {
+      font-size: .72rem; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; color: var(--gold); white-space: nowrap;
+    }
+    .mesa-chip input {
+      width: 3.4rem; border: 0; background: transparent; color: var(--ink);
+      font-weight: 800; font-size: 1.05rem; text-align: center; outline: none;
+    }
+    .mesa-chip input::placeholder { color: #5d6b7c; font-weight: 700; }
+
+    /* —— Workspace —— */
+    .workspace {
+      min-height: 0;
+      min-width: 0;
+      width: 100%;
+      overflow-x: clip;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+      padding-bottom: calc(84px + var(--safe-b));
+    }
+    .rail {
+      display: flex; gap: .45rem; overflow-x: auto; overflow-y: hidden;
+      padding: .7rem .8rem; scrollbar-width: none;
+      border-bottom: 1px solid var(--line);
+      background: rgba(17,24,32,.72);
+    }
+    .rail::-webkit-scrollbar { display: none; }
+    .cat {
+      flex: 0 0 auto; min-width: 76px; max-width: 110px;
+      border: 1px solid var(--line2); background: var(--card); color: var(--muted);
+      border-radius: 16px; padding: .65rem .55rem; cursor: pointer;
+      display: grid; gap: .35rem; justify-items: center; text-align: center;
+      transition: background .12s ease, border-color .12s ease, color .12s ease, transform .12s ease;
+    }
+    .cat i { font-size: 1rem; color: var(--accent, var(--gold)); }
+    .cat b { font-size: .68rem; font-weight: 800; line-height: 1.15; }
+    .cat:active { transform: scale(.97); }
+    .cat.active {
+      color: var(--ink);
+      border-color: color-mix(in srgb, var(--accent, var(--gold)) 55%, transparent);
+      background: color-mix(in srgb, var(--accent, var(--gold)) 18%, var(--card));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent, var(--gold)) 25%, transparent);
+    }
+    .menu {
+      min-height: 0; padding: .75rem .7rem 1rem;
+      min-width: 0;
+      max-width: 100%;
+      /* En móvil el scroll es de toda la página (body), no un panel interno bloqueado */
+      overflow: visible;
+    }
+    .menu-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: .75rem; margin: 0 0 .65rem .1rem;
+    }
+    .menu-head h1 {
+      margin: 0; font-size: 1.05rem; font-weight: 800; letter-spacing: -.02em;
+    }
+    .menu-head span { color: var(--muted); font-size: .75rem; font-weight: 600; }
+    .products {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: .7rem;
+      width: 100%;
+      min-width: 0;
+    }
+    .prod {
+      position: relative;
+      border: 1px solid var(--line2);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent, var(--gold)) 10%, var(--card)), var(--card));
+      color: var(--ink);
+      border-radius: var(--radius);
+      padding: .95rem .9rem .85rem 1rem;
+      text-align: left; cursor: pointer;
+      min-height: 96px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      display: flex; flex-direction: column; justify-content: space-between; gap: .45rem;
+      box-shadow: 0 1px 0 rgba(255,255,255,.03) inset;
+      transition: transform .1s ease, border-color .12s ease, background .12s ease;
+      overflow: hidden;
+    }
+    .prod::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--accent, var(--gold));
+    }
+    .prod:active { transform: scale(.975); }
+    .prod.flash {
+      border-color: color-mix(in srgb, var(--accent, var(--gold)) 70%, white);
+      background: color-mix(in srgb, var(--accent, var(--gold)) 22%, var(--card));
+    }
+    .prod .name {
+      font-weight: 750; font-size: .95rem; line-height: 1.25;
+      display: flex; justify-content: space-between; gap: .5rem; padding-left: .25rem;
+      min-width: 0;
+    }
+    .prod .name > span:first-child {
+      min-width: 0; overflow-wrap: anywhere;
+    }
+    .prod .qty {
+      flex: 0 0 auto;
+      background: #0b0f14; color: var(--accent, var(--gold));
+      border: 1px solid color-mix(in srgb, var(--accent, var(--gold)) 40%, transparent);
+      border-radius: 999px; padding: .12rem .45rem; font-size: .72rem; font-weight: 800;
+    }
+    .prod .desc {
+      color: var(--muted); font-size: .7rem; line-height: 1.25; font-weight: 500;
+      padding-left: .25rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .prod .price {
+      padding-left: .25rem; margin-top: auto;
+      color: var(--ink); font-weight: 800; font-size: 1.02rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .prod .price small { color: var(--muted); font-size: .68rem; font-weight: 700; margin-left: .2rem; }
+    .empty {
+      color: var(--muted); text-align: center; padding: 2rem 1rem;
+      grid-column: 1 / -1; font-weight: 600;
+    }
+
+    /* —— Live check (Square-style) —— */
+    .check {
+      display: none; flex-direction: column; min-height: 0;
+      background: linear-gradient(180deg, #171e28, #121820);
+      border-left: 1px solid var(--line);
+    }
+    .check.open {
+      /* block (no flex) en móvil: el scroll del panel entero es fiable */
+      display: block;
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      width: 100%;
+      max-width: 100vw;
+      height: auto;
+      max-height: calc(100dvh - 8px);
+      border-radius: 22px 22px 0 0;
+      z-index: 50;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line2);
+      border-bottom: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      /* Margen bajo Vaciar/Cobrado: safe-area + barra URL del móvil */
+      padding-bottom: calc(1.75rem + var(--safe-b) + 88px);
+    }
+    .check.open .check-h,
+    .check.open .lines,
+    .check.open .check-f {
+      flex: none;
+    }
+    .check.open .lines {
+      min-height: 3.5rem;
+      overflow: visible;
+    }
+    body.check-open {
+      overflow: hidden !important;
+      touch-action: pan-y;
+    }
+    body.check-open .app {
+      pointer-events: none;
+    }
+    body.check-open .check.open,
+    body.check-open .backdrop {
+      pointer-events: auto;
+    }
+    .check-h {
+      padding: 1rem 1rem .85rem;
+      border-bottom: 1px solid var(--line);
+      display: grid; gap: .7rem;
+      position: sticky; top: 0; z-index: 3;
+      background: linear-gradient(180deg, #171e28, #151c26);
+    }
+    .check-h-top {
+      display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    }
+    .check-h-left {
+      display: flex; align-items: center; gap: .35rem; min-width: 0;
+    }
+    .check-h-top h2 {
+      margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: -.01em;
+      display: flex; align-items: center; gap: .45rem;
+    }
+    .btn-back-check {
+      display: inline-flex; align-items: center; gap: .35rem;
+      border: 1px solid var(--line2);
+      background: #1a2430;
+      color: var(--ink);
+      font: inherit; font-weight: 800; font-size: .82rem;
+      height: 40px; padding: 0 .75rem 0 .6rem;
+      border-radius: 12px; cursor: pointer; flex-shrink: 0;
+    }
+    .btn-back-check:active { transform: scale(.97); background: #243041; }
+    .btn-back-check i { font-size: .9rem; color: var(--gold); }
+    .grab {
+      width: 42px; height: 5px; border-radius: 999px; background: rgba(255,255,255,.18);
+      margin: .15rem auto .35rem; display: block;
+    }
+    .grab-btn {
+      display: block; width: 100%; border: 0; background: transparent;
+      padding: .15rem 0 .2rem; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .grab-btn:active .grab { background: rgba(255,255,255,.35); }
+    .link {
+      border: 0; background: transparent; color: var(--blue);
+      font-weight: 700; cursor: pointer; padding: .35rem .45rem; border-radius: 10px;
+    }
+    .link:disabled { opacity: .35; }
+    .link:active { background: rgba(91,157,255,.12); }
+    .mesa-field {
+      display: grid; grid-template-columns: auto 1fr; gap: .55rem; align-items: center;
+      background: var(--card); border: 1px solid var(--line2); border-radius: 16px;
+      padding: .45rem .55rem .45rem .75rem;
+    }
+    .mesa-field label {
+      font-size: .72rem; font-weight: 800; letter-spacing: .05em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .mesa-field input {
+      width: 100%; border: 0; background: transparent; color: var(--ink);
+      font-weight: 800; font-size: 1.35rem; outline: none; text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .mesa-field input::placeholder { color: #556273; font-weight: 700; font-size: 1rem; }
+    .lines {
+      flex: 1 1 auto;
+      min-height: 4.5rem;
+      overflow: visible;
+      padding: .35rem .75rem .75rem;
+    }
+    .line {
+      display: grid; grid-template-columns: 1fr auto; gap: .4rem .7rem;
+      padding: .75rem .55rem; border-radius: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .line:nth-child(odd) { background: rgba(255,255,255,.02); }
+    .line-name { font-weight: 700; font-size: .9rem; line-height: 1.25; }
+    .line-meta { color: var(--muted); font-size: .72rem; font-weight: 600; margin-top: .15rem; }
+    .line-right { text-align: right; display: grid; gap: .4rem; justify-items: end; align-content: start; }
+    .line-sum { font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+    .line-price-edit {
+      display: flex; align-items: center; gap: .3rem; margin-top: .35rem;
+      flex-wrap: wrap;
+    }
+    .line-price-edit label {
+      font-size: .68rem; font-weight: 800; color: var(--gold);
+      text-transform: uppercase; letter-spacing: .03em;
+    }
+    .line-price-edit input {
+      width: 5.2rem; border: 1px solid var(--line2); border-radius: 10px;
+      background: #0f1620; color: var(--ink); font-weight: 800;
+      font-size: .88rem; padding: .35rem .45rem; outline: none;
+      font-variant-numeric: tabular-nums; text-align: right;
+    }
+    .line-price-edit input:focus {
+      border-color: rgba(245,197,24,.55); box-shadow: 0 0 0 2px var(--gold-dim);
+    }
+    .line-price-edit em {
+      font-style: normal; color: var(--muted); font-size: .75rem; font-weight: 700;
+    }
+    .q {
+      display: inline-flex; align-items: center; gap: .25rem;
+      background: var(--bg2); border: 1px solid var(--line2);
+      border-radius: 999px; padding: .12rem;
+    }
+    .q button {
+      width: 32px; height: 32px; border: 0; border-radius: 50%;
+      background: var(--card2); color: var(--ink); font-weight: 800; cursor: pointer;
+    }
+    .q button:active { background: #2a384c; }
+    .q span { min-width: 1.25rem; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    .check-f {
+      border-top: 1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      padding: .85rem 1rem 1.15rem;
+      display: grid; gap: .7rem;
+      flex: 0 0 auto;
+    }
+    .check-f .actions {
+      padding-bottom: .15rem;
+    }
+    .check-f .btn {
+      min-height: 52px;
+    }
+
+    .notes-field {
+      margin-top: .55rem;
+      display: grid; gap: .35rem;
+      background: var(--card); border: 1px solid var(--line2); border-radius: 16px;
+      padding: .55rem .7rem .65rem;
+    }
+    .notes-field label {
+      font-size: .72rem; font-weight: 800; letter-spacing: .05em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .notes-field textarea {
+      width: 100%; border: 0; background: transparent; color: var(--ink);
+      font: inherit; font-weight: 600; font-size: .88rem; line-height: 1.35;
+      outline: none; resize: vertical; min-height: 2.6rem; max-height: 6.5rem;
+    }
+    .notes-field textarea::placeholder { color: #556273; font-weight: 600; }
+    .tax-box {
+      display: grid; gap: .28rem;
+      padding: .15rem 0 .1rem;
+    }
+    .tax-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      color: var(--muted); font-size: .8rem; font-weight: 700;
+    }
+    .tax-row strong {
+      color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 800;
+    }
+    .total-row.main strong { color: var(--gold); }
+    .total-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    .total-row span { color: var(--muted); font-weight: 700; font-size: .82rem; }
+    .total-row strong {
+      font-size: 2rem; font-weight: 800; color: var(--ink);
+      letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+    }
+    .tender {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem;
+    }
+    .tender button {
+      border: 1px solid var(--line2); background: var(--card); color: var(--ink);
+      border-radius: 12px; padding: .7rem .35rem; font-weight: 800; font-size: .86rem; cursor: pointer;
+      min-width: 0;
+    }
+    .tender button:active { background: var(--card2); border-color: rgba(245,197,24,.4); }
+    .pay-row {
+      display: grid; grid-template-columns: 1fr; gap: .5rem;
+    }
+    .pay-box, .cambio {
+      border: 1px solid var(--line2); border-radius: 14px; background: var(--card);
+      padding: .45rem .7rem;
+    }
+    .pay-box label, .cambio span {
+      display: block; color: var(--muted); font-size: .68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em; margin-bottom: .15rem;
+    }
+    .pay-box input {
+      width: 100%; border: 0; background: transparent; color: var(--ink);
+      font-weight: 800; font-size: 1.1rem; outline: none;
+    }
+    .cambio strong { color: var(--ok); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+    .actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; }
+    .btn {
+      border: 0; border-radius: 16px; padding: .85rem .45rem;
+      font-weight: 800; cursor: pointer; letter-spacing: -.01em;
+      font-size: .88rem;
+    }
+    .btn.g { background: var(--card2); color: var(--ink); border: 1px solid var(--line2); }
+    .btn.t {
+      background: linear-gradient(135deg, #5b9dff, #2563eb);
+      color: #f8fbff; box-shadow: 0 10px 28px rgba(37,99,235,.28);
+      display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+    }
+    .btn.p {
+      background: linear-gradient(135deg, #2dd46f, #16a34a);
+      color: #04140a; box-shadow: 0 10px 28px rgba(45,212,111,.28);
+    }
+    .btn.k {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #fb923c, #ea580c);
+      color: #1a0a00; box-shadow: 0 10px 28px rgba(234,88,12,.28);
+      display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+    }
+    .btn:active { transform: scale(.985); }
+    .btn:disabled { opacity: .55; cursor: wait; }
+    .tag-sent, .tag-drink, .tag-food {
+      display: inline-block; margin-left: .35rem;
+      font-size: .68rem; font-weight: 800; letter-spacing: .02em;
+      padding: .1rem .4rem; border-radius: 999px; text-transform: uppercase;
+      vertical-align: middle;
+    }
+    .tag-sent { background: rgba(34,197,94,.18); color: #86efac; }
+    .tag-drink { background: rgba(45,212,191,.15); color: #5eead4; }
+    .tag-food { background: rgba(251,146,60,.16); color: #fdba74; }
+    .line-note {
+      margin-top: .2rem; color: #ff8e8e; font-style: italic; font-weight: 700; font-size: .82rem;
+    }
+    .line-note.menu-pick {
+      color: #fde68a; font-style: normal; font-weight: 800;
+      background: rgba(245,197,24,.12); border: 1px solid rgba(245,197,24,.35);
+      border-radius: 10px; padding: .35rem .5rem; margin-top: .35rem;
+    }
+    .btn-pick {
+      margin-top: .3rem; border: 1px solid rgba(245,197,24,.4);
+      background: rgba(245,197,24,.12); color: #fde68a;
+      border-radius: 999px; padding: .25rem .55rem;
+      font: inherit; font-size: .72rem; font-weight: 800; cursor: pointer;
+    }
+
+    /* Modal elección menú español */
+    .course-modal {
+      position: fixed; inset: 0; z-index: 90;
+      display: grid; place-items: center; padding: 1rem;
+      background: rgba(0,0,0,.62);
+    }
+    .course-modal[hidden] { display: none !important; }
+    .course-card {
+      width: min(420px, 100%);
+      background: var(--panel, #151c26);
+      border: 1px solid var(--line2);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 1.1rem 1rem 1rem;
+    }
+    .course-card-h {
+      display: flex; align-items: center; gap: .55rem; margin-bottom: .35rem;
+    }
+    .course-card-h h3 {
+      margin: 0; flex: 1 1 auto; font-size: 1.1rem; font-weight: 800;
+    }
+    .course-card .sub {
+      margin: 0 0 1rem; color: var(--muted); font-size: .82rem; font-weight: 600; line-height: 1.35;
+    }
+    .course-block { margin: 0 0 .85rem; }
+    .course-block h4 {
+      margin: 0 0 .45rem; font-size: .78rem; font-weight: 800;
+      letter-spacing: .04em; text-transform: uppercase; color: var(--gold);
+    }
+    .course-opts { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .course-opts button {
+      border: 1px solid var(--line2); background: var(--card); color: var(--ink);
+      border-radius: 14px; padding: .85rem .5rem; font: inherit;
+      font-weight: 800; font-size: .95rem; cursor: pointer;
+    }
+    .course-opts button.on {
+      border-color: rgba(245,197,24,.65);
+      background: rgba(245,197,24,.18);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(245,197,24,.35);
+    }
+    .course-actions {
+      display: grid; grid-template-columns: 1fr 1.2fr; gap: .5rem; margin-top: .35rem;
+    }
+    .course-actions button {
+      border: 0; border-radius: 14px; padding: .9rem .7rem;
+      font: inherit; font-weight: 800; cursor: pointer;
+    }
+    .course-actions .cancel {
+      background: var(--card2); color: var(--ink); border: 1px solid var(--line2);
+    }
+    .course-actions .ok {
+      background: linear-gradient(135deg, #f5c518, #e0a800); color: #1a1200;
+    }
+    .course-actions .ok:disabled { opacity: .45; cursor: not-allowed; }
+
+    .fab {
+      position: fixed; left: .85rem; right: .85rem; bottom: calc(.75rem + var(--safe-b));
+      z-index: 40; border: 0; border-radius: 18px;
+      background: linear-gradient(135deg, #f5c518, #e0a800);
+      color: #1a1200; display: flex; align-items: center; gap: .65rem;
+      padding: 1rem 1.1rem; font-weight: 800; box-shadow: var(--shadow); cursor: pointer;
+    }
+    .fab em {
+      font-style: normal; background: #1a1200; color: var(--gold);
+      border-radius: 999px; min-width: 1.7rem; height: 1.7rem;
+      display: grid; place-items: center; font-size: .8rem;
+    }
+    .fab-mesa { opacity: .95; }
+    .fab-mesa:empty { display: none; }
+    .fab strong { margin-left: auto; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      backdrop-filter: blur(2px); z-index: 45;
+    }
+
+    /* Aviso cocina → TPV: abajo, para NO tapar Mesa arriba */
+    .pickup-alert {
+      position: fixed;
+      left: 50%;
+      right: auto;
+      top: auto;
+      /* Encima del FAB / zona inferior; deja libre barra de mesa */
+      bottom: calc(5.35rem + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      z-index: 96;
+      width: min(520px, calc(100% - 1.2rem));
+      display: none;
+      flex-direction: column;
+      gap: .4rem;
+      pointer-events: none; /* solo las tarjetas capturan toques */
+    }
+    .pickup-alert.show { display: flex; }
+    .pickup-card {
+      pointer-events: auto;
+      display: flex; align-items: center; gap: .65rem;
+      padding: .7rem .85rem;
+      border-radius: 16px;
+      border: 2px solid #fbbf24;
+      background: linear-gradient(135deg, #7c2d12, #b45309 55%, #ca8a04);
+      color: #fff7ed;
+      box-shadow: 0 14px 40px rgba(0,0,0,.45);
+      animation: pickupBlink 1s ease-in-out infinite;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .pickup-card i { font-size: 1.2rem; color: #fde68a; flex: 0 0 auto; }
+    .pickup-card strong { display: block; font-size: 1.05rem; letter-spacing: .01em; }
+    .pickup-card span { display: block; font-size: .74rem; font-weight: 700; opacity: .92; }
+    .pickup-card .x {
+      margin-left: auto; border: 0; background: rgba(0,0,0,.25);
+      color: #fff; width: 38px; height: 38px; border-radius: 50%;
+      font-size: 1rem; cursor: pointer; flex: 0 0 auto;
+    }
+    @keyframes pickupBlink {
+      0%, 100% { filter: brightness(1); box-shadow: 0 14px 40px rgba(0,0,0,.45), 0 0 0 0 rgba(251,191,36,.55); }
+      50% { filter: brightness(1.18); box-shadow: 0 14px 40px rgba(0,0,0,.45), 0 0 0 6px rgba(251,191,36,.35); }
+    }
+    body.tpv-locked .pickup-alert { display: none !important; }
+    /* Con Cuenta abierta: aviso más arriba del teclado/acciones */
+    body.check-open .pickup-alert {
+      bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
+    @media (min-width: 1024px) {
+      /* En PC: esquina inferior derecha, sin tapar mesa del ticket */
+      .pickup-alert {
+        left: auto;
+        right: 1rem;
+        transform: none;
+        width: min(360px, calc(var(--check-w, 400px) - 1.5rem));
+        bottom: 1rem;
+      }
+      body.check-open .pickup-alert { bottom: 1rem; }
+    }
+
+    /* Teléfonos grandes / landscape: 2 columnas ya legibles */
+    @media (min-width: 560px) and (max-width: 1023px) {
+      .products { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+      .prod { min-height: 108px; padding: .9rem .8rem .8rem; }
+      .prod .name { font-size: .9rem; }
+      .tender { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .tender button { padding: .55rem .2rem; font-size: .78rem; }
+      .pay-row { grid-template-columns: 1.15fr .85fr; }
+    }
+
+    /* Tablet / portátil / desktop: Square Real-Time Check View */
+    @media (min-width: 1024px) {
+      :root { --check-w: min(400px, 36vw); --rail-w: 88px; }
+      html, body { height: 100%; }
+      body { overflow: hidden; }
+      .app {
+        height: 100dvh;
+        max-height: 100dvh;
+        min-height: 0;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        overflow: hidden;
+      }
+      .topbar { position: relative; flex-wrap: wrap; }
+      .jornada-bar { position: relative; top: auto; flex-wrap: wrap; }
+      .menu {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+        touch-action: pan-y;
+        -ms-touch-action: pan-y;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+      }
+      .workspace {
+        grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--check-w);
+        grid-template-rows: minmax(0, 1fr);
+        padding-bottom: 0;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+      }
+      .rail {
+        flex-direction: column; overflow-x: hidden; overflow-y: auto;
+        padding: .55rem .45rem; border-bottom: 0; border-right: 1px solid var(--line);
+        gap: .35rem; min-height: 0;
+        touch-action: pan-y;
+        -ms-touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+      }
+      .cat { width: 100%; max-width: none; min-width: 0; padding: .55rem .3rem; border-radius: 14px; }
+      .cat b { font-size: .62rem; }
+      .menu { padding: .7rem .75rem .9rem; }
+      .products { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+      .prod { min-height: 88px; padding: .75rem .7rem .7rem .85rem; }
+      .prod .name { font-size: .88rem; }
+      .prod .price { font-size: .95rem; }
+      .check {
+        display: flex; flex-direction: column; position: static;
+        height: 100%; max-height: none; width: auto; max-width: none;
+        border-radius: 0; box-shadow: none; border: 0; border-left: 1px solid var(--line);
+        padding-bottom: 0; overflow: hidden; min-height: 0;
+      }
+      .check.open {
+        display: flex; flex-direction: column;
+        padding-bottom: 0; max-height: none; overflow: hidden; height: 100%;
+      }
+      .check-h { padding: .7rem .75rem .65rem; gap: .5rem; flex: 0 0 auto; }
+      .mesa-field input { font-size: 1.15rem; }
+      .notes-field { margin-top: .35rem; padding: .4rem .55rem .5rem; }
+      .notes-field textarea { min-height: 2.1rem; max-height: 4.2rem; font-size: .82rem; }
+      .lines {
+        flex: 1 1 auto; min-height: 0; overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        -ms-touch-action: pan-y;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        padding: .25rem .55rem .55rem;
+      }
+      .check-f {
+        flex: 0 0 auto; padding: .55rem .7rem .65rem; gap: .45rem;
+        max-height: 48%; overflow: auto; -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        -ms-touch-action: pan-y;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+      }
+      .total-row strong { font-size: 1.45rem; }
+      .check-f .btn { min-height: 44px; padding: .75rem .7rem; }
+      .tender button { padding: .45rem .15rem; font-size: .72rem; }
+      body.check-open { overflow: hidden !important; touch-action: auto; }
+      body.check-open .app { pointer-events: auto; }
+      .grab, .fab, .backdrop, .btn-back-check, .grab-btn { display: none !important; }
+      .top-tools .mesa-chip { display: none; }
+      .mesa-field input { text-align: left; }
+      .tender { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .pay-row { grid-template-columns: 1.15fr .85fr; }
+      .search { width: min(240px, 28vw); }
+    }
+
+    /* Portátil 14" típico (~1280–1536 CSS px) */
+    @media (min-width: 1200px) {
+      :root { --check-w: min(420px, 34vw); --rail-w: 92px; }
+      .products { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (min-width: 1440px) {
+      :root { --check-w: 440px; --rail-w: 100px; }
+      .products { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .prod { min-height: 96px; }
+      .total-row strong { font-size: 1.7rem; }
+    }
+
+    /* Pantallas bajas (portátil 14" 768–900 px de alto): comprimir para que Cobrado/Listo se vean */
+    @media (min-width: 1024px) and (max-height: 900px) {
+      .topbar { padding: .45rem .6rem; gap: .4rem; }
+      .jornada-bar { padding: .3rem .55rem; gap: .35rem; }
+      .jornada-actions .btn-j { padding: .35rem .55rem; font-size: .66rem; }
+      .brand strong { font-size: .85rem; }
+      .brand em { font-size: .65rem; }
+      .search input { padding: .45rem .75rem .45rem 2rem; }
+      .check-h { padding: .5rem .6rem .45rem; }
+      .check-f { max-height: 52%; padding: .4rem .55rem .5rem; gap: .35rem; }
+      .tax-box { gap: .12rem; }
+      .tax-row { font-size: .72rem; }
+      .total-row strong { font-size: 1.25rem; }
+      .check-f .btn { min-height: 40px; padding: .55rem .5rem; font-size: .88rem; }
+      .notes-field { margin-top: .25rem; padding: .3rem .5rem .35rem; }
+      .notes-field textarea { min-height: 1.8rem; max-height: 3.2rem; font-size: .78rem; }
+      .prod { min-height: 76px; padding: .55rem .55rem .5rem .7rem; }
+      .prod .desc { display: none; }
+      .menu-head { margin-bottom: .4rem; }
+      .menu-head h1 { font-size: .95rem; }
+    }
+    @media (min-width: 1024px) and (max-height: 760px) {
+      .jornada-status { font-size: .7rem; }
+      .rail { padding: .35rem .3rem; }
+      .cat { padding: .4rem .2rem; }
+      .cat i { font-size: .85rem; }
+      .check-f { max-height: 58%; }
+      .tender { display: none; } /* exacto vía input; ahorra altura */
+    }
+
+    @media (max-width: 1023px) {
+      .check.open {
+        display: block;
+        max-height: calc(100dvh - 8px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: calc(1.75rem + var(--safe-b) + 88px);
+      }
+      .search { display: flex; flex: 1 1 auto; min-width: 0; width: auto; max-width: none; }
+      .search input { padding: .55rem .75rem .55rem 2rem; font-size: .9rem; }
+      .clock { display: none; }
+      .brand em { display: none; }
+      .brand strong { font-size: .86rem; }
+      .rail { padding: .65rem .55rem; position: sticky; top: 58px; z-index: 25; }
+      .cat { min-width: 72px; }
+      .fab { left: .65rem; right: .65rem; }
+      .app {
+        height: auto;
+        min-height: 100dvh;
+        grid-template-rows: auto auto auto;
+      }
+      .workspace {
+        grid-template-rows: auto auto;
+        height: auto;
+        min-height: 0;
+      }
+      .menu { overflow: visible; }
+      body { touch-action: pan-y; -ms-touch-action: pan-y; }
+      .jornada-bar { position: sticky; top: 56px; }
+    }
+    @media (max-width: 380px) {
+      .brand strong { max-width: 7.5rem; }
+      .mesa-chip span { display: none; }
+      .mesa-chip { padding: .28rem .4rem; }
+    }
+
+    /* Landscape móvil / tablet baja */
+    @media (max-height: 520px) and (orientation: landscape) {
+      .gate-card { max-height: 96dvh; overflow: auto; }
+      .fab { padding: .7rem .9rem; }
+    }
+
+    /* Táctil real (TPV Windows / tablet): zonas más grandes, como móvil */
+    html.has-touch .cat {
+      min-height: 64px;
+    }
+    html.has-touch .prod {
+      min-height: 96px;
+    }
+    html.has-touch .q button {
+      min-width: 44px; min-height: 44px;
+    }
+    html.has-touch .check-f .btn {
+      min-height: 52px;
+    }
+    html.has-touch .tender button {
+      min-height: 44px;
+    }
+    @media (hover: none), (pointer: coarse) {
+      .cat { min-height: 64px; }
+      .prod { min-height: 96px; }
+      .q button { min-width: 44px; min-height: 44px; }
+      .check-f .btn { min-height: 52px; }
+    }
+
+    /* Táctil: solo botones más grandes. Scroll = nativo del navegador (sin JS). */
+    html.has-touch .check-f .btn,
+    html.has-touch .check .q button,
+    html.has-touch .tender button,
+    html.has-touch .btn-pick {
+      touch-action: manipulation;
+      pointer-events: auto;
+    }
+
+    /* Pantalla PIN */
+    .gate {
+      position: fixed; inset: 0; z-index: 100;
+      display: grid; place-items: center;
+      padding: 1.25rem;
+      background:
+        radial-gradient(900px 420px at 50% -10%, rgba(245,197,24,.16), transparent 55%),
+        var(--bg);
+    }
+    .gate[hidden] { display: none !important; }
+    .gate-card {
+      width: min(360px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line2);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 1.35rem 1.2rem 1.25rem;
+      text-align: center;
+    }
+    .gate-card img {
+      width: 72px; height: 72px; border-radius: 50%;
+      object-fit: cover; border: 2px solid var(--gold);
+      margin: 0 auto .85rem;
+    }
+    .gate-card h1 {
+      margin: 0 0 .25rem; font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em;
+    }
+    .gate-card p {
+      margin: 0 0 1rem; color: var(--muted); font-size: .9rem; font-weight: 600;
+    }
+    .gate-dots {
+      display: flex; justify-content: center; gap: .55rem;
+      margin: 0 0 1rem;
+    }
+    .gate-dots i {
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.28);
+      background: transparent; display: block;
+      transition: .12s ease;
+    }
+    .gate-dots i.on {
+      background: var(--gold); border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-dim);
+    }
+    .gate-pad {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem;
+    }
+    .gate-pad button {
+      height: 58px; border-radius: 16px; border: 1px solid var(--line2);
+      background: var(--card); color: var(--ink);
+      font: inherit; font-size: 1.35rem; font-weight: 800;
+      cursor: pointer; transition: .12s ease;
+    }
+    .gate-pad button:active { transform: scale(.97); background: var(--card2); }
+    .gate-pad button.ghost { color: var(--muted); font-size: .95rem; }
+    .gate-err {
+      min-height: 1.2rem; margin: .75rem 0 0;
+      color: var(--danger); font-size: .82rem; font-weight: 700;
+    }
+    .gate-back {
+      display: inline-block; margin-top: .9rem;
+      color: var(--muted); text-decoration: none; font-size: .85rem; font-weight: 700;
+    }
+    .gate-back:hover { color: var(--gold); }
+    body.tpv-locked .app,
+    body.tpv-locked .backdrop,
+    body.tpv-locked .fab { visibility: hidden; pointer-events: none; }
+
+    /* —— Jornada / caja —— */
+    .jornada-bar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: .45rem;
+      padding: .45rem .7rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(12, 18, 26, .92);
+      position: sticky; top: 58px; z-index: 28;
+      backdrop-filter: blur(12px);
+    }
+    .jornada-status {
+      flex: 1 1 auto; min-width: 8rem;
+      font-size: .78rem; font-weight: 700; color: var(--muted);
+    }
+    .jornada-status strong { color: var(--ink); font-weight: 800; }
+    .jornada-status.open strong { color: var(--ok); }
+    .jornada-status.ended strong { color: var(--gold); }
+    .jornada-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .jornada-actions .btn-j {
+      border: 1px solid var(--line2); background: var(--card); color: var(--ink);
+      border-radius: 999px; padding: .45rem .75rem;
+      font: inherit; font-size: .72rem; font-weight: 800;
+      cursor: pointer; white-space: nowrap;
+    }
+    .jornada-actions .btn-j:disabled { opacity: .4; cursor: not-allowed; }
+    .jornada-actions .btn-j.start { border-color: rgba(52,211,153,.45); color: #86efac; }
+    .jornada-actions .btn-j.total { border-color: rgba(245,197,24,.45); color: var(--gold); }
+    .jornada-actions .btn-j.end { border-color: rgba(251,113,133,.45); color: #fda4af; }
+    .jornada-actions .btn-j.print { border-color: rgba(147,197,253,.45); color: #93c5fd; }
+    .jornada-modal {
+      position: fixed; inset: 0; z-index: 80;
+      display: grid; place-items: center; padding: 1rem;
+      background: rgba(0,0,0,.55);
+    }
+    .jornada-modal[hidden] { display: none !important; }
+    .jornada-card {
+      width: min(520px, 100%);
+      max-height: min(88dvh, 720px);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      -ms-touch-action: pan-y;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      background: var(--panel);
+      border: 1px solid var(--line2);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 1.1rem 1rem 1rem;
+      position: relative;
+    }
+    .jornada-card-h {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem;
+      margin-bottom: .35rem;
+    }
+    .jornada-card-h h3 { margin: 0; }
+    .btn-modal-back {
+      display: inline-flex; align-items: center; gap: .35rem;
+      border: 1px solid var(--line2); background: #1a2430; color: var(--ink);
+      font: inherit; font-weight: 800; font-size: .8rem;
+      height: 38px; padding: 0 .7rem 0 .55rem; border-radius: 12px; cursor: pointer; flex-shrink: 0;
+    }
+    .btn-modal-back i { color: var(--gold); }
+    .jornada-card h3 {
+      margin: 0 0 .35rem; font-size: 1.15rem; font-weight: 800;
+    }
+    .jornada-card .sub {
+      margin: 0 0 .9rem; color: var(--muted); font-size: .82rem; font-weight: 600;
+    }
+    .jornada-grand {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: .75rem; padding: .85rem 1rem; margin: 0 0 .85rem;
+      border-radius: 14px; background: color-mix(in srgb, var(--gold) 14%, var(--card));
+      border: 1px solid rgba(245,197,24,.35);
+    }
+    .jornada-grand span { font-weight: 700; color: var(--muted); font-size: .8rem; }
+    .jornada-grand strong { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .jornada-sec { margin: 0 0 .85rem; }
+    .jornada-sec h4 {
+      margin: 0 0 .4rem; font-size: .78rem; font-weight: 800;
+      letter-spacing: .04em; text-transform: uppercase; color: var(--gold);
+    }
+    .jornada-row {
+      display: flex; justify-content: space-between; gap: .75rem;
+      padding: .4rem 0; border-bottom: 1px solid var(--line);
+      font-size: .88rem; font-weight: 650;
+    }
+    .jornada-row:last-child { border-bottom: 0; }
+    .jornada-row em { color: var(--muted); font-style: normal; font-weight: 600; font-size: .78rem; }
+    .jornada-hint {
+      margin: 0 0 .65rem; padding: .55rem .7rem;
+      border-radius: 12px; font-size: .78rem; font-weight: 650; line-height: 1.35;
+      color: #fde68a; background: rgba(245,197,24,.1); border: 1px solid rgba(245,197,24,.28);
+    }
+    .jornada-ticket {
+      border: 1px solid var(--line2); border-radius: 14px;
+      background: var(--card); margin: 0 0 .55rem; overflow: hidden;
+    }
+    .jornada-ticket-h {
+      display: flex; align-items: center; gap: .5rem; width: 100%;
+      padding: .65rem .7rem; border: 0; background: transparent; color: var(--ink);
+      font: inherit; font-weight: 750; cursor: pointer; text-align: left;
+    }
+    .jornada-ticket-h span { flex: 1 1 auto; min-width: 0; }
+    .jornada-ticket-h em { color: var(--muted); font-style: normal; font-size: .75rem; font-weight: 650; }
+    .jornada-ticket-h strong { font-variant-numeric: tabular-nums; }
+    .jornada-ticket-b { display: none; padding: 0 .7rem .7rem; border-top: 1px solid var(--line); }
+    .jornada-ticket.open .jornada-ticket-b { display: block; }
+    .jornada-line-edit {
+      display: grid; grid-template-columns: 1fr auto; gap: .35rem .55rem;
+      align-items: center; padding: .55rem 0; border-bottom: 1px solid var(--line);
+    }
+    .jornada-line-edit:last-of-type { border-bottom: 0; }
+    .jornada-line-edit .meta { color: var(--muted); font-size: .72rem; font-weight: 650; }
+    .jornada-line-edit .ctrls { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; justify-content: flex-end; }
+    .jornada-line-edit .ctrls button {
+      width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line2);
+      background: #0b0f14; color: var(--ink); font: inherit; font-weight: 800; cursor: pointer;
+    }
+    .jornada-line-edit .ctrls .qty {
+      min-width: 1.6rem; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums;
+    }
+    .jornada-line-edit .ctrls .price {
+      width: 4.6rem; height: 34px; border-radius: 10px; border: 1px solid var(--line2);
+      background: #0b0f14; color: var(--ink); font: inherit; font-weight: 700;
+      text-align: right; padding: 0 .4rem;
+    }
+    .jornada-ticket-actions { display: flex; justify-content: flex-end; gap: .4rem; margin-top: .45rem; }
+    .jornada-ticket-actions button {
+      border: 1px solid rgba(251,113,133,.4); background: transparent; color: #fda4af;
+      border-radius: 10px; padding: .4rem .7rem; font: inherit; font-size: .75rem; font-weight: 800; cursor: pointer;
+    }
+    .jornada-card .close-row { display: flex; justify-content: flex-end; margin-top: .5rem; }
+    .jornada-card .close-row button {
+      border: 1px solid var(--line2); background: var(--card); color: var(--ink);
+      border-radius: 12px; padding: .55rem 1rem; font: inherit; font-weight: 800; cursor: pointer;
+    }
+    @media (max-width: 720px) {
+      .jornada-bar { padding: .4rem .55rem; }
+      .jornada-actions .btn-j { padding: .42rem .62rem; font-size: .68rem; }
+    }
+  </style>
+</head>
+<body class="tpv-locked">
+
+  <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+    <div class="gate-card">
+      <img src="assets/logo.jpg" alt="Casa Torino" />
+      <h1 id="gateTitle">Acceso TPV</h1>
+      <p>Introduce el PIN del personal</p>
+      <div class="gate-dots" id="gateDots" aria-hidden="true">
+        <i></i><i></i><i></i><i></i>
+      </div>
+      <div class="gate-pad" id="gatePad">
+        <button type="button" data-k="1">1</button>
+        <button type="button" data-k="2">2</button>
+        <button type="button" data-k="3">3</button>
+        <button type="button" data-k="4">4</button>
+        <button type="button" data-k="5">5</button>
+        <button type="button" data-k="6">6</button>
+        <button type="button" data-k="7">7</button>
+        <button type="button" data-k="8">8</button>
+        <button type="button" data-k="9">9</button>
+        <button type="button" class="ghost" data-k="clear">Borrar</button>
+        <button type="button" data-k="0">0</button>
+        <button type="button" class="ghost" data-k="ok">Entrar</button>
+      </div>
+      <div class="gate-err" id="gateErr" aria-live="polite"></div>
+      <a class="gate-back" href="interno.html"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+    </div>
+  </div>
+
+  <div class="app">
+    <header class="topbar">
+      <a class="icon-btn" href="interno.html" aria-label="Volver"><i class="fa-solid fa-arrow-left"></i></a>
+      <div class="brand">
+        <img src="assets/logo.jpg" alt="" />
+        <div>
+          <strong>Casa Torino</strong>
+          <em>TPV · pedidos por mesa</em>
+        </div>
+      </div>
+      <div class="top-tools">
+        <div class="clock" id="clock">--:--</div>
+        <div class="search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="search" type="search" inputmode="search" enterkeyhint="search" placeholder="Buscar producto…" autocomplete="off" spellcheck="false" />
+        </div>
+        <label class="mesa-chip" for="mesaTop">
+          <span>Mesa</span>
+          <input id="mesaTop" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" placeholder="nº" maxlength="4" autocomplete="off" spellcheck="false" />
+        </label>
+        <button class="icon-btn" id="btnClear" type="button" title="Vaciar"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </header>
+
+    <div class="jornada-bar" id="jornadaBar" aria-label="Jornada de caja">
+      <div class="jornada-status" id="jornadaStatus">Jornada: <strong>sin iniciar</strong></div>
+      <div class="jornada-actions">
+        <button class="btn-j start" id="btnJornadaStart" type="button"><i class="fa-solid fa-play"></i> Inicio de jornada</button>
+        <button class="btn-j total" id="btnJornadaTotal" type="button"><i class="fa-solid fa-chart-column"></i> Total de jornada</button>
+        <button class="btn-j end" id="btnJornadaEnd" type="button" disabled><i class="fa-solid fa-flag-checkered"></i> Fin de sesión</button>
+        <button class="btn-j print" id="btnPrintTest" type="button" title="Probar impresora POS-58"><i class="fa-solid fa-print"></i> Probar ticket</button>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <nav class="rail" id="cats" aria-label="Categorías"></nav>
+
+      <section class="menu">
+        <div class="menu-head">
+          <h1 id="menuTitle">Todos</h1>
+          <span id="menuCount">0 productos</span>
+        </div>
+        <div class="products" id="products"></div>
+      </section>
+
+      <aside class="check" id="ticket">
+        <div class="check-h">
+          <button type="button" class="grab-btn" id="btnCloseCheckGrab" aria-label="Volver a la carta">
+            <span class="grab" aria-hidden="true"></span>
+          </button>
+          <div class="check-h-top">
+            <div class="check-h-left">
+              <button type="button" class="btn-back-check" id="btnCloseCheck" aria-label="Volver a la carta">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+              </button>
+              <h2><i class="fa-solid fa-receipt"></i> Cuenta</h2>
+            </div>
+            <button class="link" id="btnUndo" type="button" disabled>Deshacer</button>
+          </div>
+          <div class="mesa-field">
+            <label for="mesa">Mesa</label>
+            <input id="mesa" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" placeholder="nº de mesa" maxlength="4" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="notes-field">
+            <label for="notes">Notas del pedido</label>
+            <textarea id="notes" rows="2" maxlength="280" inputmode="text" enterkeyhint="done" placeholder="Ej. sin tomate, poco hecho, alergias…" autocomplete="off" spellcheck="true"></textarea>
+          </div>
+        </div>
+        <div class="lines" id="lines"><p class="empty">Pon el nº de mesa y toca productos.</p></div>
+        <div class="check-f">
+          <div class="tax-box" id="taxBox">
+            <div class="tax-row"><span>Base imponible</span><strong id="base">0,00 €</strong></div>
+            <div class="tax-row"><span>IVA 10%</span><strong id="iva">0,00 €</strong></div>
+          </div>
+          <div class="total-row main"><span>Total (IVA incl.)</span><strong id="total">0,00 €</strong></div>
+          <div class="tender" id="tender">
+            <button type="button" data-cash="10">10 €</button>
+            <button type="button" data-cash="20">20 €</button>
+            <button type="button" data-cash="50">50 €</button>
+            <button type="button" data-cash="exact">Exacto</button>
+          </div>
+          <div class="pay-row">
+            <div class="pay-box">
+              <label for="paid">Cliente entrega</label>
+              <input id="paid" type="text" inputmode="decimal" enterkeyhint="done" placeholder="0,00" autocomplete="off" spellcheck="false" />
+            </div>
+            <div class="cambio"><span>Cambio</span><strong id="change">—</strong></div>
+          </div>
+          <div class="actions">
+            <button class="btn k" id="btnKitchen" type="button"><i class="fa-solid fa-fire-burner"></i> Enviar a Cocina</button>
+            <button class="btn k" id="btnNextCourse" type="button" hidden style="background:linear-gradient(180deg,#f59e0b,#d97706);"><i class="fa-solid fa-bell"></i> Siguiente plato</button>
+            <button class="btn g" id="btnClear2" type="button">Vaciar</button>
+            <button class="btn t" id="btnTicket" type="button"><i class="fa-solid fa-receipt"></i> Ticket</button>
+            <button class="btn p" id="btnDone" type="button">Cobrar</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <button class="fab" id="fab" type="button">
+      <i class="fa-solid fa-cart-shopping"></i>
+      <em id="fabCount">0</em>
+      <span id="fabMesa" class="fab-mesa"></span>
+      <strong id="fabTotal">0,00 €</strong>
+    </button>
+  </div>
+  <div class="backdrop" id="backdrop" hidden></div>
+  <div class="pickup-alert" id="pickupAlert" aria-live="assertive"></div>
+
+  <div class="course-modal" id="courseModal" hidden role="dialog" aria-modal="true" aria-labelledby="courseModalTitle">
+    <div class="course-card">
+      <div class="course-card-h">
+        <button type="button" class="btn-modal-back" id="courseBack" aria-label="Volver">
+          <i class="fa-solid fa-arrow-left"></i> Volver
+        </button>
+        <h3 id="courseModalTitle">Menú español</h3>
+      </div>
+      <p class="sub" id="courseModalSub">Elige qué opción comerá el cliente. Cocina lo verá en el ticket.</p>
+      <div class="course-block">
+        <h4>Primero</h4>
+        <div class="course-opts" id="coursePrimero" role="group" aria-label="Primero">
+          <button type="button" data-course="primero" data-n="1">Nº 1</button>
+          <button type="button" data-course="primero" data-n="2">Nº 2</button>
+        </div>
+      </div>
+      <div class="course-block">
+        <h4>Segundo</h4>
+        <div class="course-opts" id="courseSegundo" role="group" aria-label="Segundo">
+          <button type="button" data-course="segundo" data-n="1">Nº 1</button>
+          <button type="button" data-course="segundo" data-n="2">Nº 2</button>
+        </div>
+      </div>
+      <div class="course-actions">
+        <button type="button" class="cancel" id="courseCancel">Cancelar</button>
+        <button type="button" class="ok" id="courseOk" disabled>Añadir a cuenta</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="course-modal" id="extraModal" hidden role="dialog" aria-modal="true" aria-labelledby="extraModalTitle">
+    <div class="course-card">
+      <div class="course-card-h">
+        <button type="button" class="btn-modal-back" id="extraBack" aria-label="Volver">
+          <i class="fa-solid fa-arrow-left"></i> Volver
+        </button>
+        <h3 id="extraModalTitle">Producto libre</h3>
+      </div>
+      <p class="sub">Pon el nombre y el precio. Luego podrás cambiar el precio en la cuenta.</p>
+      <div class="course-block">
+        <h4>Nombre</h4>
+        <input id="extraName" type="text" inputmode="text" enterkeyhint="next" maxlength="80" placeholder="Ej. Pan, tapa, encargo…" autocomplete="off" spellcheck="true" style="width:100%;border:1px solid var(--line2);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-weight:700;padding:.7rem .8rem;outline:none" />
+      </div>
+      <div class="course-block">
+        <h4>Precio (€)</h4>
+        <input id="extraPrice" type="text" inputmode="decimal" enterkeyhint="done" placeholder="0,00" autocomplete="off" spellcheck="false" style="width:100%;border:1px solid var(--line2);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-weight:800;padding:.7rem .8rem;outline:none" />
+      </div>
+      <div class="course-actions">
+        <button type="button" class="cancel" id="extraCancel">Cancelar</button>
+        <button type="button" class="ok" id="extraOk">Añadir a cuenta</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="jornada-modal" id="jornadaModal" hidden role="dialog" aria-modal="true" aria-labelledby="jornadaModalTitle">
+    <div class="jornada-card">
+      <div class="jornada-card-h">
+        <button type="button" class="btn-modal-back" id="jornadaBack" aria-label="Volver">
+          <i class="fa-solid fa-arrow-left"></i> Volver
+        </button>
+        <h3 id="jornadaModalTitle">Total de jornada</h3>
+      </div>
+      <p class="sub" id="jornadaModalSub">—</p>
+      <div class="jornada-grand">
+        <span>Total vendido</span>
+        <strong id="jornadaGrand">0,00 €</strong>
+      </div>
+      <div class="jornada-sec">
+        <h4>Por tipo</h4>
+        <div id="jornadaByType"></div>
+      </div>
+      <div class="jornada-sec">
+        <h4>Por categoría</h4>
+        <div id="jornadaByCat"></div>
+      </div>
+      <div class="jornada-sec">
+        <h4>Por producto</h4>
+        <div id="jornadaByProd"></div>
+      </div>
+      <div class="jornada-sec">
+        <h4>Corregir tickets</h4>
+        <p class="jornada-hint">Si hay un error al final del día, abre un ticket y cambia cantidad o precio, o bórralo. También funciona con la jornada ya cerrada.</p>
+        <div id="jornadaTickets"></div>
+      </div>
+      <div class="close-row">
+        <button type="button" id="btnJornadaClose">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js"></script>
+  <script src="tpv-data.js"></script>
+  <script src="printService.js"></script>
+  <script src="tpvSync.js"></script>
+  <script src="tpvJornada.js"></script>
+  <script src="kitchenSync.js"></script>
+  <script>
+    (() => {
+      const AUTH_KEY = 'casa-torino-tpv-auth-v1'
+      const $ = (id) => document.getElementById(id)
+
+      let pinBuf = ''
+      let tpvStarted = false
+
+      function paintPinDots() {
+        const dots = $('gateDots')?.querySelectorAll('i') || []
+        dots.forEach((d, i) => d.classList.toggle('on', i < pinBuf.length))
+      }
+
+      // —— Audio TPV (móvil/TV: hay que desbloquear con un toque) ——
+      let tpvAudioCtx = null
+      let tpvAudioUnlocked = false
+      let tpvBeepUrl = null
+
+      function buildBeepUrl() {
+        if (tpvBeepUrl) return tpvBeepUrl
+        try {
+          const sampleRate = 22050
+          const duration = 0.22
+          const n = Math.floor(sampleRate * duration)
+          const dataSize = n * 2
+          const buf = new ArrayBuffer(44 + dataSize)
+          const v = new DataView(buf)
+          const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)) }
+          w(0, 'RIFF')
+          v.setUint32(4, 36 + dataSize, true)
+          w(8, 'WAVE')
+          w(12, 'fmt ')
+          v.setUint32(16, 16, true)
+          v.setUint16(20, 1, true)
+          v.setUint16(22, 1, true)
+          v.setUint32(24, sampleRate, true)
+          v.setUint32(28, sampleRate * 2, true)
+          v.setUint16(32, 2, true)
+          v.setUint16(34, 16, true)
+          w(36, 'data')
+          v.setUint32(40, dataSize, true)
+          for (let i = 0; i < n; i++) {
+            const t = i / sampleRate
+            const env = Math.min(1, i / 180) * Math.min(1, (n - i) / 500)
+            // doble tono (alarma corta)
+            const sample =
+              (Math.sin(2 * Math.PI * 880 * t) * 0.35 + Math.sin(2 * Math.PI * 1320 * t) * 0.28) * env
+            v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, sample)) * 32767, true)
+          }
+          tpvBeepUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }))
+        } catch {
+          tpvBeepUrl = null
+        }
+        return tpvBeepUrl
+      }
+
+      async function unlockTpvAudio() {
+        try {
+          const Ctx = window.AudioContext || window.webkitAudioContext
+          if (Ctx) {
+            if (!tpvAudioCtx) tpvAudioCtx = new Ctx()
+            if (tpvAudioCtx.state === 'suspended') {
+              await tpvAudioCtx.resume()
+            }
+            // Buffer silencioso: fuerza el desbloqueo real en iOS/Android/TV
+            if (!tpvAudioUnlocked && tpvAudioCtx.state === 'running') {
+              const buf = tpvAudioCtx.createBuffer(1, 1, 22050)
+              const src = tpvAudioCtx.createBufferSource()
+              src.buffer = buf
+              src.connect(tpvAudioCtx.destination)
+              src.start(0)
+              tpvAudioUnlocked = true
+            }
+          }
+        } catch {}
+        try {
+          const url = buildBeepUrl()
+          if (url) {
+            const a = new Audio(url)
+            a.volume = 0.01
+            a.muted = true
+            const p = a.play()
+            if (p && typeof p.then === 'function') {
+              await p.catch(() => {})
+              a.pause()
+              a.currentTime = 0
+              a.muted = false
+            }
+          }
+        } catch {}
+      }
+
+      function unlockTpv() {
+        try { sessionStorage.removeItem(AUTH_KEY) } catch {}
+        document.body.classList.remove('tpv-locked')
+        const gate = $('gate')
+        if (gate) gate.hidden = true
+        // Tras PIN: reintentar desbloqueo (el toque del pad ya lo armó)
+        unlockTpvAudio()
+        if (!tpvStarted) {
+          tpvStarted = true
+          startTpv()
+        }
+      }
+
+      function failPin(msg) {
+        pinBuf = ''
+        paintPinDots()
+        if ($('gateErr')) $('gateErr').textContent = msg || 'PIN incorrecto'
+        $('gate')?.animate?.(
+          [{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }],
+          { duration: 280 }
+        )
+      }
+
+      async function tryPin() {
+        if (pinBuf.length < 4) return
+        try {
+          const r = await fetch('/api/tpv-auth', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: pinBuf }),
+          })
+          const data = await r.json().catch(() => ({}))
+          if (r.ok && data.ok) {
+            if ($('gateErr')) $('gateErr').textContent = ''
+            unlockTpv()
+            return
+          }
+          failPin((data && data.error) || 'PIN incorrecto')
+        } catch (err) {
+          console.warn('[tpv-auth]', err)
+          failPin('No se pudo validar el PIN')
+        }
+      }
+
+      function onPinKey(k) {
+        if ($('gateErr')) $('gateErr').textContent = ''
+        if (k === 'clear') {
+          pinBuf = pinBuf.slice(0, -1)
+          paintPinDots()
+          return
+        }
+        if (k === 'ok') {
+          tryPin()
+          return
+        }
+        if (!/^\d$/.test(k) || pinBuf.length >= 4) return
+        pinBuf += k
+        paintPinDots()
+        if (pinBuf.length === 4) setTimeout(tryPin, 80)
+      }
+
+      // Desbloquear audio en el gesto del usuario (antes del fetch async del PIN)
+      $('gatePad')?.addEventListener('pointerdown', () => { unlockTpvAudio() }, { passive: true })
+      $('gatePad')?.addEventListener('click', (e) => {
+        unlockTpvAudio()
+        const b = e.target.closest('[data-k]')
+        if (!b) return
+        onPinKey(b.dataset.k)
+      })
+
+      window.addEventListener('keydown', (e) => {
+        unlockTpvAudio()
+        if (!$('gate') || $('gate').hidden) return
+        if (e.key === 'Backspace') { e.preventDefault(); onPinKey('clear'); return }
+        if (e.key === 'Enter') { e.preventDefault(); onPinKey('ok'); return }
+        if (/^\d$/.test(e.key)) onPinKey(e.key)
+      })
+      document.addEventListener('pointerdown', () => { unlockTpvAudio() }, { passive: true })
+      document.addEventListener('touchstart', () => { unlockTpvAudio() }, { passive: true })
+
+      paintPinDots()
+      function lockTpvForPin(msg) {
+        document.body.classList.add('tpv-locked')
+        const gate = $('gate')
+        if (gate) gate.hidden = false
+        pinBuf = ''
+        paintPinDots()
+        if ($('gateErr')) $('gateErr').textContent = msg || 'Sesión caducada — introduce el PIN'
+        try { window.CasaTorinoTpvSync?.stop?.() } catch {}
+        try { window.CasaTorinoTpvJornada?.stopPolling?.() } catch {}
+        try { window.CasaTorinoKitchenSync?.stop?.() } catch {}
+        tpvStarted = false
+      }
+
+      // Siempre pedir PIN al entrar en la página (cada carga / F5).
+      // No auto-desbloquear por cookie. No DELETE al abrir: no tumbar otras pestañas.
+      document.body.classList.add('tpv-locked')
+      const gateBoot = $('gate')
+      if (gateBoot) gateBoot.hidden = false
+      pinBuf = ''
+      paintPinDots()
+      if ($('gateErr')) $('gateErr').textContent = ''
+
+      function startTpv() {
+      const catalog = window.TPV_CATALOG || []
+      const money = (n) => (Math.round((+n + Number.EPSILON) * 100) / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+      const $ = (id) => document.getElementById(id)
+      const KEY = 'casa-torino-tpv-mesas-v1'
+
+      const CAT_META = {
+        all: { label: 'Todos', icon: 'fa-border-all', accent: '#f5c518' },
+        'menus-dia': { label: 'Menús', icon: 'fa-utensils', accent: '#f59e0b' },
+        picoteo: { label: 'Picoteo', icon: 'fa-bowl-food', accent: '#fb7185' },
+        colombia: { label: 'Colombia', icon: 'fa-pepper-hot', accent: '#facc15' },
+        espana: { label: 'España', icon: 'fa-fish', accent: '#f87171' },
+        combinados: { label: 'Combinados', icon: 'fa-layer-group', accent: '#60a5fa' },
+        infantil: { label: 'Infantil', icon: 'fa-child', accent: '#c084fc' },
+        postres: { label: 'Postres', icon: 'fa-ice-cream', accent: '#e879f9' },
+        bebidas: { label: 'Bebidas', icon: 'fa-glass-water', accent: '#2dd4bf' },
+        cafes: { label: 'Cafés', icon: 'fa-mug-hot', accent: '#d6a26a' },
+        extras: { label: 'Varios', icon: 'fa-pen-to-square', accent: '#a78bfa' },
+      }
+
+      const state = {
+        cat: 'all',
+        q: '',
+        mesa: '',
+        notes: '',
+        cart: {},
+        hist: [],
+        tables: {},
+        jornada: null,
+      }
+      const IVA_RATE = 0.10 // hostelería: comidas y bebidas 10%
+
+      const all = () => catalog.flatMap((c) => c.items.map((i) => ({ ...i, catId: c.id, catName: c.name })))
+      const normalizeMesa = (v) => String(v || '').trim().replace(/\s+/g, '')
+      const accentFor = (catId) => (CAT_META[catId] || CAT_META.all).accent
+      const catNameOf = (catId) => {
+        const fromCatalog = catalog.find((c) => c.id === catId)
+        if (fromCatalog) return fromCatalog.name
+        return (CAT_META[catId] || {}).label || catId || 'Otros'
+      }
+
+      function fmtHm(ts) {
+        if (!ts) return '—'
+        return new Date(ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+      }
+
+      function paintJornadaStatus(j) {
+        state.jornada = j || null
+        const el = $('jornadaStatus')
+        const btnStart = $('btnJornadaStart')
+        const btnEnd = $('btnJornadaEnd')
+        if (!el) return
+        const status = j?.status || 'closed'
+        el.classList.remove('open', 'ended')
+        if (status === 'open') {
+          el.classList.add('open')
+          const t = j?.totals?.total
+          el.innerHTML = `Jornada: <strong>abierta</strong> · desde ${fmtHm(j.startedAt)}${
+            Number.isFinite(t) ? ` · ${money(t)}` : ''
+          }`
+          if (btnStart) btnStart.disabled = true
+          if (btnEnd) btnEnd.disabled = false
+        } else if (status === 'ended') {
+          el.classList.add('ended')
+          const t = j?.totals?.total
+          el.innerHTML = `Jornada: <strong>cerrada</strong> · ${fmtHm(j.startedAt)}–${fmtHm(j.endedAt)}${
+            Number.isFinite(t) ? ` · ${money(t)}` : ''
+          }`
+          if (btnStart) btnStart.disabled = false
+          if (btnEnd) btnEnd.disabled = true
+        } else {
+          el.innerHTML = 'Jornada: <strong>sin iniciar</strong>'
+          if (btnStart) btnStart.disabled = false
+          if (btnEnd) btnEnd.disabled = true
+        }
+      }
+
+      function openJornadaModal(opts) {
+        const keepOpenId = opts && opts.keepOpenId
+        const j = state.jornada || window.CasaTorinoTpvJornada?.last
+        const totals = j?.totals || {
+          tickets: 0,
+          total: 0,
+          byType: { comida: { qty: 0, total: 0 }, bebida: { qty: 0, total: 0 } },
+          byCategory: [],
+          byProduct: [],
+        }
+        const canEdit = j?.status === 'open' || j?.status === 'ended'
+        const statusLabel =
+          j?.status === 'open'
+            ? `Abierta desde ${fmtHm(j.startedAt)}`
+            : j?.status === 'ended'
+              ? `Cerrada · ${fmtHm(j.startedAt)} – ${fmtHm(j.endedAt)}`
+              : 'Sin jornada iniciada'
+        if ($('jornadaModalSub')) {
+          $('jornadaModalSub').textContent =
+            `${statusLabel} · ${totals.tickets || 0} ticket${(totals.tickets || 0) === 1 ? '' : 's'}`
+        }
+        if ($('jornadaGrand')) $('jornadaGrand').textContent = money(totals.total || 0)
+
+        const typeHtml = ['comida', 'bebida']
+          .map((k) => {
+            const row = totals.byType?.[k] || { qty: 0, total: 0 }
+            const label = k === 'comida' ? 'Comida' : 'Bebida'
+            return `<div class="jornada-row"><span>${label} <em>${row.qty} ud.</em></span><strong>${money(row.total)}</strong></div>`
+          })
+          .join('')
+        if ($('jornadaByType')) $('jornadaByType').innerHTML = typeHtml || '<div class="jornada-row">Sin ventas</div>'
+
+        const cats = Array.isArray(totals.byCategory) ? totals.byCategory : []
+        if ($('jornadaByCat')) {
+          $('jornadaByCat').innerHTML = cats.length
+            ? cats
+                .map(
+                  (c) =>
+                    `<div class="jornada-row"><span>${c.name || c.id} <em>${c.qty} ud. · ${
+                      c.categoryType === 'bebida' ? 'bebida' : 'comida'
+                    }</em></span><strong>${money(c.total)}</strong></div>`,
+                )
+                .join('')
+            : '<div class="jornada-row">Sin ventas</div>'
+        }
+
+        const prods = Array.isArray(totals.byProduct) ? totals.byProduct : []
+        if ($('jornadaByProd')) {
+          $('jornadaByProd').innerHTML = prods.length
+            ? prods
+                .map(
+                  (p) =>
+                    `<div class="jornada-row"><span>${p.name} <em>${p.qty} ud. · ${
+                      p.categoryType === 'bebida' ? 'bebida' : 'comida'
+                    }</em></span><strong>${money(p.total)}</strong></div>`,
+                )
+                .join('')
+            : '<div class="jornada-row">Sin ventas</div>'
+        }
+
+        const sales = Array.isArray(j?.sales) ? j.sales.slice().reverse() : []
+        if ($('jornadaTickets')) {
+          if (!sales.length) {
+            $('jornadaTickets').innerHTML = '<div class="jornada-row">Sin tickets todavía.</div>'
+          } else if (!canEdit) {
+            $('jornadaTickets').innerHTML =
+              '<div class="jornada-row">Inicia o cierra una jornada para poder corregir.</div>'
+          } else {
+            $('jornadaTickets').innerHTML = sales
+              .map((s) => {
+                const open = keepOpenId && keepOpenId === s.id ? ' open' : ''
+                const mesa = s.mesa ? `Mesa ${s.mesa}` : 'Sin mesa'
+                const lines = (s.lines || [])
+                  .map((l) => {
+                    const ctype = l.categoryType === 'bebida' ? 'bebida' : 'comida'
+                    return `<div class="jornada-line-edit" data-sale="${s.id}" data-line="${l.id}">
+                      <div>
+                        <div>${l.name}</div>
+                        <div class="meta">${ctype} · ud. ${money(l.price)}</div>
+                      </div>
+                      <div class="ctrls">
+                        <button type="button" data-jact="dec" title="Quitar una">−</button>
+                        <span class="qty">${l.qty}</span>
+                        <button type="button" data-jact="inc" title="Añadir una">+</button>
+                        <input class="price" type="text" inputmode="decimal" enterkeyhint="done" value="${Number(l.price).toFixed(2)}" data-jact="price" aria-label="Precio" autocomplete="off" spellcheck="false" />
+                        <button type="button" data-jact="del-line" title="Quitar producto">🗑</button>
+                      </div>
+                    </div>`
+                  })
+                  .join('')
+                return `<div class="jornada-ticket${open}" data-sale-id="${s.id}">
+                  <button type="button" class="jornada-ticket-h" data-jact="toggle">
+                    <span>${mesa} <em>· ${fmtHm(s.at)}</em></span>
+                    <strong>${money(s.total)}</strong>
+                  </button>
+                  <div class="jornada-ticket-b">
+                    ${lines}
+                    <div class="jornada-ticket-actions">
+                      <button type="button" data-jact="del-sale">Borrar ticket</button>
+                    </div>
+                  </div>
+                </div>`
+              })
+              .join('')
+          }
+        }
+
+        if ($('jornadaModal')) $('jornadaModal').hidden = false
+      }
+
+      async function applyJornadaLine(saleId, lineId, patch, keepOpenId) {
+        try {
+          const j = await window.CasaTorinoTpvJornada.updateLine(saleId, lineId, patch)
+          paintJornadaStatus(j)
+          openJornadaModal({ keepOpenId: keepOpenId || saleId })
+        } catch (err) {
+          console.warn('jornada updateLine', err)
+          alert(err.message || 'No se pudo corregir el producto')
+        }
+      }
+
+      async function deleteJornadaSale(saleId) {
+        if (!confirm('¿Borrar este ticket de la jornada?\nSe restará del total.')) return
+        try {
+          const j = await window.CasaTorinoTpvJornada.deleteSale(saleId)
+          paintJornadaStatus(j)
+          openJornadaModal()
+        } catch (err) {
+          console.warn('jornada deleteSale', err)
+          alert(err.message || 'No se pudo borrar el ticket')
+        }
+      }
+
+      function closeJornadaModal() {
+        if ($('jornadaModal')) $('jornadaModal').hidden = true
+      }
+
+      async function startJornada() {
+        if (!confirm('¿Iniciar jornada?\nSe empieza a contabilizar todo lo cobrado desde ahora.\nEl histórico de cocina se renueva.')) return
+        try {
+          const j = await window.CasaTorinoTpvJornada.start()
+          paintJornadaStatus(j)
+          try {
+            await window.CasaTorinoKitchenSync?.syncJornada?.('start', {
+              startedAt: j.startedAt,
+              jornadaId: `j-${j.startedAt}`,
+            })
+          } catch (err) {
+            console.warn('sync cocina jornada', err)
+          }
+          alert('Jornada iniciada.\nHistórico de cocina renovado.')
+        } catch (err) {
+          console.warn('startJornada', err)
+          if (err.data) paintJornadaStatus(err.data)
+          alert(err.message || 'No se pudo iniciar la jornada')
+        }
+      }
+
+      async function endJornada() {
+        const t = state.jornada?.totals?.total
+        const extra = Number.isFinite(t) ? `\nTotal actual: ${money(t)}` : ''
+        if (!confirm(`¿Fin de sesión / cerrar jornada?${extra}\n\nEl total se enviará al ERP (Caja TPV) y podrás seguir consultándolo.`)) return
+        try {
+          const j = await window.CasaTorinoTpvJornada.end()
+          paintJornadaStatus(j)
+          try {
+            await window.CasaTorinoKitchenSync?.syncJornada?.('end', {
+              startedAt: j.startedAt,
+              endedAt: j.endedAt,
+              jornadaId: `j-${j.startedAt}`,
+            })
+          } catch (err) {
+            console.warn('sync cocina fin', err)
+          }
+          openJornadaModal()
+          if (j?.cierre) {
+            alert('Sesión cerrada.\nTotal enviado al ERP → Caja TPV.')
+          }
+        } catch (err) {
+          console.warn('endJornada', err)
+          if (err.data) paintJornadaStatus(err.data)
+          alert(err.message || 'No se pudo cerrar la jornada')
+        }
+      }
+
+      async function ensureJornadaOpenForSale() {
+        const j = state.jornada || window.CasaTorinoTpvJornada?.last
+        if (j?.status === 'open') return true
+        if (
+          !confirm(
+            'No hay jornada abierta.\n\n¿Iniciar jornada ahora y registrar este cobro?',
+          )
+        ) {
+          return false
+        }
+        try {
+          const started = await window.CasaTorinoTpvJornada.start()
+          paintJornadaStatus(started)
+          return true
+        } catch (err) {
+          if (err.status === 409 && err.data?.status === 'open') {
+            paintJornadaStatus(err.data)
+            return true
+          }
+          alert(err.message || 'No se pudo abrir la jornada')
+          return false
+        }
+      }
+
+      function syncMesaInputs(v) {
+        const val = normalizeMesa(v)
+        if ($('mesa') && $('mesa').value !== val) $('mesa').value = val
+        if ($('mesaTop') && $('mesaTop').value !== val) $('mesaTop').value = val
+      }
+
+      function load() {
+        try {
+          const d = JSON.parse(sessionStorage.getItem(KEY) || '{}')
+          if (d.tables && typeof d.tables === 'object') state.tables = d.tables
+          if (d.mesa) {
+            state.mesa = normalizeMesa(d.mesa)
+            syncMesaInputs(state.mesa)
+            loadMesaIntoState(state.mesa)
+          }
+        } catch {}
+      }
+
+      function persist() {
+        const m = normalizeMesa(state.mesa)
+        if (m) {
+          state.tables[m] = {
+            cart: state.cart,
+            hist: state.hist,
+            notes: ($('notes')?.value || state.notes || '').trim(),
+            paid: $('paid')?.value || '',
+          }
+        }
+        sessionStorage.setItem(KEY, JSON.stringify({ mesa: m, tables: state.tables }))
+        // Sync entre móvil y PC (misma cuenta por nº de mesa)
+        try {
+          window.CasaTorinoTpvSync?.push(state.tables, m)
+        } catch (err) {
+          console.warn('sync push', err)
+        }
+      }
+
+      function loadMesaIntoState(mesa) {
+        const m = normalizeMesa(mesa)
+        const data = (m && state.tables[m]) || { cart: {}, hist: [], notes: '', paid: '' }
+        state.cart = data.cart || {}
+        state.hist = data.hist || []
+        state.notes = data.notes || ''
+        if ($('notes')) $('notes').value = state.notes
+        if ($('paid')) $('paid').value = data.paid || ''
+      }
+
+      function switchMesa(nextRaw) {
+        const next = normalizeMesa(nextRaw)
+        const prev = normalizeMesa(state.mesa)
+        if (prev && prev !== next) {
+          state.tables[prev] = {
+            cart: state.cart,
+            hist: state.hist,
+            notes: ($('notes')?.value || state.notes || '').trim(),
+            paid: $('paid')?.value || '',
+          }
+        }
+        state.mesa = next
+        syncMesaInputs(next)
+        loadMesaIntoState(next)
+        persist()
+        render()
+      }
+
+      function requireMesa() {
+        const m = normalizeMesa($('mesa')?.value || $('mesaTop')?.value)
+        if (m) {
+          if (m !== state.mesa) switchMesa(m)
+          return true
+        }
+        alert('Pon primero el número de mesa.\nAsí la cuenta queda asociada a esa mesa.')
+        const focusEl = window.matchMedia('(min-width: 1024px)').matches ? $('mesa') : ($('mesaTop') || $('mesa'))
+        focusEl?.focus()
+        return false
+      }
+
+      const lines = () => Object.values(state.cart)
+      const round2 = (n) => Math.round((+n + Number.EPSILON) * 100) / 100
+      const totals = () => {
+        const ls = lines()
+        const total = round2(ls.reduce((a, x) => a + x.qty * x.price, 0))
+        // Precios de carta con IVA incluido → desglose fiscal
+        const base = round2(total / (1 + IVA_RATE))
+        const iva = round2(total - base)
+        return {
+          ls,
+          count: ls.reduce((a, x) => a + x.qty, 0),
+          total,
+          base,
+          iva,
+          ivaRate: IVA_RATE,
+        }
+      }
+
+      function categoryTypeOf(itemOrLine) {
+        const catId = String(itemOrLine?.catId || '').toLowerCase()
+        // Barra: bebidas, cafés, postres y varios (no van a cocina)
+        if (catId === 'bebidas' || catId === 'cafes' || catId === 'postres' || catId === 'extras') return 'bebida'
+        if (itemOrLine?.categoryType === 'bebida' || itemOrLine?.categoryType === 'comida') {
+          return itemOrLine.categoryType
+        }
+        return 'comida'
+      }
+
+      function isSpanishMenu(itemOrLine) {
+        if (!itemOrLine) return false
+        if (itemOrLine.coursePick === true) return true
+        const id = String(itemOrLine.id || itemOrLine.productId || '')
+        return id === 'menu-dia-es-semana' || id === 'menu-dia-es-finde' || /^menu-dia-es-/.test(id)
+      }
+
+      function isPriceEditable(itemOrLine) {
+        if (!itemOrLine) return false
+        if (itemOrLine.priceEditable === true || itemOrLine.customProduct === true) return true
+        const cat = String(itemOrLine.catId || '')
+        return cat === 'menus-dia' || cat === 'extras'
+      }
+
+      function formatPriceInput(n) {
+        const v = Math.round((Number(n) + Number.EPSILON) * 100) / 100
+        if (!Number.isFinite(v)) return ''
+        return v.toFixed(2).replace('.', ',')
+      }
+
+      function parsePriceInput(raw) {
+        const n = parseFloat(String(raw || '').trim().replace(',', '.'))
+        if (!Number.isFinite(n) || n < 0) return null
+        return Math.round((n + Number.EPSILON) * 100) / 100
+      }
+
+      function setLinePrice(key, raw) {
+        const line = state.cart[key]
+        if (!line || !isPriceEditable(line)) return
+        const price = parsePriceInput(raw)
+        if (price == null) {
+          alert('Precio no válido')
+          renderTicket()
+          return
+        }
+        line.price = price
+        persist()
+        renderTicket()
+      }
+
+      function formatCourseNote(primero, segundo) {
+        return `Primero N${primero} · Segundo N${segundo}`
+      }
+
+      function cartKeyFor(productId, note) {
+        const n = String(note || '').trim()
+        if (n) return `${productId}::${n}`
+        return productId
+      }
+
+      function qtyOfProduct(productId) {
+        return lines().reduce((a, l) => a + ((l.productId || l.id) === productId ? Number(l.qty || 0) : 0), 0)
+      }
+
+      let coursePickCtx = null // { item, editKey } | null
+      let courseSel = { primero: '', segundo: '' }
+
+      function paintCourseModal() {
+        document.querySelectorAll('#coursePrimero button, #courseSegundo button').forEach((btn) => {
+          const course = btn.dataset.course
+          const n = btn.dataset.n
+          btn.classList.toggle('on', String(courseSel[course] || '') === String(n))
+        })
+        const ok = $('courseOk')
+        if (ok) ok.disabled = !(courseSel.primero && courseSel.segundo)
+      }
+
+      function openCoursePick(item, editKey) {
+        coursePickCtx = { item, editKey: editKey || null }
+        courseSel = { primero: '', segundo: '' }
+        if (editKey && state.cart[editKey]) {
+          const m = String(state.cart[editKey].note || '').match(/Primero N[ºo]?(\d).*Segundo N[ºo]?(\d)/i)
+          if (m) courseSel = { primero: m[1], segundo: m[2] }
+        }
+        if ($('courseModalTitle')) {
+          $('courseModalTitle').textContent = item?.name || 'Menú español'
+        }
+        if ($('courseOk')) {
+          $('courseOk').textContent = editKey ? 'Guardar elección' : 'Añadir a cuenta'
+        }
+        paintCourseModal()
+        if ($('courseModal')) $('courseModal').hidden = false
+      }
+
+      function closeCoursePick() {
+        coursePickCtx = null
+        if ($('courseModal')) $('courseModal').hidden = true
+      }
+
+      function commitCoursePick() {
+        if (!coursePickCtx?.item || !courseSel.primero || !courseSel.segundo) return
+        const item = coursePickCtx.item
+        const note = formatCourseNote(courseSel.primero, courseSel.segundo)
+        const editKey = coursePickCtx.editKey
+        closeCoursePick()
+        if (editKey && state.cart[editKey]) {
+          const line = state.cart[editKey]
+          const newKey = cartKeyFor(line.productId || line.id, note)
+          if (newKey === editKey) {
+            line.note = note
+            line.primero = courseSel.primero
+            line.segundo = courseSel.segundo
+          } else {
+            // Mover / fusionar si ya existe esa misma elección
+            const moved = {
+              ...line,
+              id: line.productId || line.id,
+              productId: line.productId || line.id,
+              key: newKey,
+              note,
+              primero: courseSel.primero,
+              segundo: courseSel.segundo,
+            }
+            delete state.cart[editKey]
+            if (state.cart[newKey]) {
+              state.cart[newKey].qty += Number(moved.qty || 1)
+              state.cart[newKey].sentQty = Math.min(
+                Number(state.cart[newKey].sentQty || 0) + Number(moved.sentQty || 0),
+                state.cart[newKey].qty,
+              )
+            } else {
+              state.cart[newKey] = moved
+            }
+            state.hist = state.hist.map((h) => (h === editKey ? newKey : h))
+          }
+          persist(); render(); return
+        }
+        addWithNote(item, note, { primero: courseSel.primero, segundo: courseSel.segundo })
+      }
+
+      function addWithNote(item, note, meta) {
+        if (!requireMesa()) return
+        const ctype = categoryTypeOf(item)
+        const key = cartKeyFor(item.id, note)
+        if (state.cart[key]) state.cart[key].qty += 1
+        else {
+          state.cart[key] = {
+            id: item.id,
+            productId: item.id,
+            key,
+            name: item.name,
+            price: item.price,
+            qty: 1,
+            catId: item.catId,
+            categoryType: ctype,
+            sentQty: 0,
+            note: String(note || ''),
+            coursePick: Boolean(item.coursePick || isSpanishMenu(item)),
+            priceEditable: Boolean(item.priceEditable || item.customProduct || isPriceEditable(item)),
+            customProduct: Boolean(item.customProduct),
+            primero: meta?.primero || '',
+            segundo: meta?.segundo || '',
+          }
+        }
+        if (!state.cart[key].categoryType) state.cart[key].categoryType = ctype
+        if (isPriceEditable(item) || isPriceEditable(state.cart[key])) state.cart[key].priceEditable = true
+        state.hist.push(key)
+        persist(); render(); flash(item.id)
+        try { navigator.vibrate?.(12) } catch {}
+      }
+
+      function add(item) {
+        if (!requireMesa()) return
+        if (item.customProduct || item.id === 'extras-libre' || item.catId === 'extras') {
+          openExtraModal()
+          return
+        }
+        // Solo menú español: pedir Primero/Segundo Nº1 o Nº2
+        if (isSpanishMenu(item) || item.coursePick) {
+          openCoursePick(item, null)
+          return
+        }
+        addWithNote(item, '', null)
+      }
+
+      function openExtraModal() {
+        if (!requireMesa()) return
+        if ($('extraName')) $('extraName').value = ''
+        if ($('extraPrice')) $('extraPrice').value = ''
+        if ($('extraModal')) $('extraModal').hidden = false
+        setTimeout(() => { try { $('extraName')?.focus() } catch {} }, 50)
+      }
+
+      function closeExtraModal() {
+        if ($('extraModal')) $('extraModal').hidden = true
+      }
+
+      function commitExtraProduct() {
+        const name = String($('extraName')?.value || '').trim()
+        const price = parsePriceInput($('extraPrice')?.value)
+        if (!name) {
+          alert('Pon un nombre al producto.')
+          $('extraName')?.focus()
+          return
+        }
+        if (price == null) {
+          alert('Pon un precio válido (ej. 1,50).')
+          $('extraPrice')?.focus()
+          return
+        }
+        const slug = name
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 40) || 'libre'
+        const id = 'extras-' + slug
+        closeExtraModal()
+        addWithNote(
+          {
+            id,
+            name,
+            price,
+            catId: 'extras',
+            categoryType: 'bebida',
+            customProduct: true,
+            priceEditable: true,
+          },
+          '',
+          null,
+        )
+      }
+
+      function setQty(id, qty) {
+        if (!state.cart[id]) return
+        if (qty <= 0) delete state.cart[id]
+        else {
+          state.cart[id].qty = qty
+          // Si bajan unidades ya enviadas, ajustar sentQty
+          if ((state.cart[id].sentQty || 0) > qty) state.cart[id].sentQty = qty
+        }
+        persist(); render()
+      }
+
+      function undo() {
+        const id = state.hist.pop()
+        if (!id || !state.cart[id]) return render()
+        setQty(id, state.cart[id].qty - 1)
+      }
+
+      function clearCart() {
+        if (!lines().length) return
+        const m = normalizeMesa(state.mesa)
+        const label = m ? ` de la mesa ${m}` : ''
+        if (!confirm(`¿Vaciar la cuenta${label}?`)) return
+        state.cart = {}; state.hist = []; state.notes = ''
+        if ($('notes')) $('notes').value = ''
+        if ($('paid')) $('paid').value = ''
+        persist(); render(); closeTicket()
+      }
+
+      async function sendToKitchen() {
+        if (!requireMesa()) return
+        const m = normalizeMesa(state.mesa)
+        const notes = ($('notes')?.value || state.notes || '').trim()
+        const foodPending = []
+        for (const l of lines()) {
+          const ctype = categoryTypeOf(l)
+          if (ctype !== 'comida') continue
+          const sent = Number(l.sentQty || 0)
+          const pending = Math.max(0, Number(l.qty || 0) - sent)
+          if (pending <= 0) continue
+          foodPending.push({
+            key: l.key || cartKeyFor(l.productId || l.id, l.note),
+            id: l.productId || l.id,
+            name: l.name,
+            qty: pending,
+            catId: l.catId || '',
+            categoryType: 'comida',
+            note: String(l.note || '').trim(),
+          })
+        }
+        if (!foodPending.length) {
+          const hasFood = lines().some((l) => categoryTypeOf(l) === 'comida')
+          const hasDrink = lines().some((l) => categoryTypeOf(l) === 'bebida')
+          if (hasFood) alert('Toda la comida de esta mesa ya está enviada a cocina.\nAñade más platos o espera.')
+          else if (hasDrink) alert('Solo hay productos de barra en la cuenta.\nBebidas, cafés y postres se preparan en barra y no van a cocina.')
+          else alert('La cuenta está vacía.')
+          return
+        }
+        const resumen = foodPending
+          .map((x) => `${x.qty} × ${x.name}${x.note ? ` (${x.note})` : ''}`)
+          .join('\n')
+        if (!confirm(`Mesa ${m}\nEnviar a cocina:\n\n${resumen}\n\n(Bebidas, cafés y postres no se envían)`)) return
+
+        const btn = $('btnKitchen')
+        if (btn) btn.disabled = true
+        try {
+          if (!window.CasaTorinoKitchenSync?.create) throw new Error('Sync cocina no cargado')
+          await window.CasaTorinoKitchenSync.create({
+            mesa: m,
+            notes,
+            status: 'pending_kitchen',
+            items: foodPending.map(({ id, name, qty, catId, categoryType, note }) => ({
+              id, name, qty, catId, categoryType, note,
+            })),
+          })
+          // Marcar como enviadas (siguen en la cuenta del TPV para cobrar)
+          for (const l of foodPending) {
+            const line = state.cart[l.key]
+            if (!line) continue
+            line.sentQty = Number(line.qty || 0)
+            line.categoryType = 'comida'
+          }
+          persist()
+          render()
+          try { navigator.vibrate?.([20, 30, 20]) } catch {}
+          // En móvil volver a la carta tras enviar (no quedarse atrapado en Cuenta)
+          if (window.matchMedia('(max-width: 1023px)').matches) closeTicket()
+        } catch (err) {
+          console.warn('sendToKitchen', err)
+          if (err && err.status === 401) {
+            lockTpvForPin('Sesión caducada — introduce el PIN')
+            return
+          }
+          alert('No se pudo enviar a cocina.\n' + (err.message || err))
+        } finally {
+          if (btn) btn.disabled = false
+        }
+      }
+
+      async function printTicketOnly() {
+        const { ls, total, count, base, iva } = totals()
+        if (!count) {
+          alert('La cuenta está vacía.')
+          return
+        }
+        const m = normalizeMesa(state.mesa)
+        const notes = ($('notes')?.value || state.notes || '').trim()
+        const cartItems = ls.map((l) => ({ name: l.name, qty: l.qty, price: l.price }))
+        const paidRaw = $('paid')?.value || ''
+        const paid = parseFloat(String(paidRaw).replace(',', '.'))
+        const meta = {
+          mesa: m || undefined,
+          notes: notes || undefined,
+          base,
+          iva,
+          ivaRate: IVA_RATE,
+          paid: Number.isFinite(paid) ? paid : undefined,
+          change: Number.isFinite(paid) ? paid - total : undefined,
+          openDrawer: false,
+        }
+        const btn = $('btnTicket')
+        if (btn) btn.disabled = true
+        try {
+          if (!window.CasaTorinoPrint?.printReceipt) {
+            alert('Servicio de impresión no cargado.\nRecarga la página.')
+            return
+          }
+          await window.CasaTorinoPrint.printReceipt(cartItems, total, meta)
+        } finally {
+          if (btn) btn.disabled = false
+        }
+      }
+
+      async function done() {
+        const { ls, total, count, base, iva } = totals()
+        if (!count) return
+        const m = normalizeMesa(state.mesa)
+        const mesaTxt = m ? `Mesa ${m}\n` : ''
+        if (!confirm(`${mesaTxt}Cobrar ${money(total)}\nIVA 10%: ${money(iva)}\n\n¿Registrar cobro, abrir cajón y cerrar esta cuenta?\n(No imprime: usa Ticket antes si hace falta)`)) return
+
+        if (!(await ensureJornadaOpenForSale())) return
+
+        // Snapshot antes de vaciar (para jornada)
+        const saleLines = ls.map((l) => ({
+          id: l.id,
+          name: l.name,
+          qty: l.qty,
+          price: l.price,
+          categoryType: categoryTypeOf(l),
+          catId: l.catId || '',
+          catName: catNameOf(l.catId),
+        }))
+
+        // Abrir cajón sin reimprimir (el ticket se da antes con «Ticket»)
+        if (window.CasaTorinoPrint?.openCashDrawer) {
+          await window.CasaTorinoPrint.openCashDrawer()
+        }
+
+        // Registrar en total de jornada (comida / bebida / categorías)
+        try {
+          const sale = {
+            id:
+              typeof crypto !== 'undefined' && crypto.randomUUID
+                ? crypto.randomUUID()
+                : 's-' + Date.now() + '-' + Math.random().toString(16).slice(2, 8),
+            at: Date.now(),
+            mesa: m || '',
+            total,
+            base,
+            iva,
+            lines: saleLines,
+          }
+          const j = await window.CasaTorinoTpvJornada.addSale(sale)
+          paintJornadaStatus(j)
+        } catch (err) {
+          console.warn('jornada sale', err)
+          alert(
+            'Cobro hecho en la mesa, pero no se pudo guardar en el total de jornada.\n' +
+              (err.message || err),
+          )
+        }
+
+        state.cart = {}; state.hist = []; state.notes = ''
+        if ($('notes')) $('notes').value = ''
+        if ($('paid')) $('paid').value = ''
+        if (m) state.tables[m] = { cart: {}, hist: [], notes: '', paid: '' }
+        persist(); render(); closeTicket()
+      }
+
+      function flash(id) {
+        const el = document.querySelector(`.prod[data-id="${CSS.escape(id)}"]`)
+        if (!el) return
+        el.classList.add('flash')
+        setTimeout(() => el.classList.remove('flash'), 220)
+      }
+
+      function renderCats() {
+        const cats = [
+          { id: 'all', name: 'Todos' },
+          ...catalog.map((c) => ({ id: c.id, name: c.name })),
+        ]
+        $('cats').innerHTML = cats.map((c) => {
+          const meta = CAT_META[c.id] || { label: c.name.split(' ')[0], icon: 'fa-circle', accent: '#f5c518' }
+          return `<button class="cat ${state.cat === c.id ? 'active' : ''}" data-cat="${c.id}" type="button" style="--accent:${meta.accent}">
+            <i class="fa-solid ${meta.icon}"></i>
+            <b>${meta.label}</b>
+          </button>`
+        }).join('')
+      }
+
+      function filtered() {
+        const q = state.q.trim().toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+        return all().filter((i) => {
+          if (state.cat !== 'all' && i.catId !== state.cat) return false
+          if (!q) return true
+          const name = (i.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          const desc = (i.desc || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          const base = (i.base || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          return name.includes(q) || desc.includes(q) || base.includes(q)
+        })
+      }
+
+      function menuLinesInCart() {
+        return lines().filter((l) => l.catId === 'menus-dia')
+      }
+
+      function updateNextCourseBtn() {
+        const btn = $('btnNextCourse')
+        if (!btn) return
+        const menus = menuLinesInCart()
+        btn.hidden = menus.length === 0
+      }
+
+      async function sendNextCourse() {
+        if (!requireMesa()) return
+        const menus = menuLinesInCart()
+        if (!menus.length) {
+          alert('Siguiente plato solo aplica cuando hay un Menú del día en la cuenta.')
+          return
+        }
+        const m = normalizeMesa(state.mesa)
+        const menuName = menus.map((x) => `${x.qty} × ${x.name}`).join(', ')
+        if (!confirm(`Mesa ${m}\n¿Avisar a cocina: SIGUIENTE PLATO?\n\n${menuName}`)) return
+        const btn = $('btnNextCourse')
+        if (btn) btn.disabled = true
+        try {
+          if (!window.CasaTorinoKitchenSync?.create) throw new Error('Sync cocina no cargado')
+          await window.CasaTorinoKitchenSync.create({
+            mesa: m,
+            kind: 'siguiente_plato',
+            notes: '¡SIGUIENTE PLATO!',
+            menuName,
+            items: [{
+              id: 'siguiente-plato',
+              name: '➡️ SIGUIENTE PLATO (MENÚ)',
+              qty: 1,
+              categoryType: 'comida',
+              catId: 'menus-dia',
+              note: menuName,
+            }],
+          })
+          try { navigator.vibrate?.([30, 40, 30]) } catch {}
+          alert('Aviso enviado a cocina: Siguiente plato')
+          if (window.matchMedia('(max-width: 1023px)').matches) closeTicket()
+        } catch (err) {
+          console.warn('sendNextCourse', err)
+          if (err && err.status === 401) {
+            lockTpvForPin('Sesión caducada — introduce el PIN')
+            return
+          }
+          alert('No se pudo avisar a cocina.\n' + (err.message || err))
+        } finally {
+          if (btn) btn.disabled = false
+        }
+      }
+
+      function renderProducts() {
+        const items = filtered()
+        const meta = CAT_META[state.cat] || CAT_META.all
+        $('menuTitle').textContent = meta.label
+        // Categoría Varios: UI especial
+        if (state.cat === 'extras') {
+          $('menuCount').textContent = 'producto libre'
+          $('products').innerHTML = `
+            <button class="prod" type="button" id="btnOpenExtra" data-extra="1" style="--accent:${accentFor('extras')};grid-column:1/-1;min-height:120px">
+              <div class="name"><span>＋ Añadir producto libre</span></div>
+              <div class="desc">Pan, tapa, encargo u otra venta suelta · luego puedes cambiar el precio en la cuenta</div>
+              <div class="price">precio libre</div>
+            </button>`
+          return
+        }
+        $('menuCount').textContent = `${items.length} producto${items.length === 1 ? '' : 's'}`
+        $('products').innerHTML = items.length
+          ? items.map((i) => {
+              const q = qtyOfProduct(i.id)
+              const accent = accentFor(i.catId)
+              return `<button class="prod" data-id="${i.id}" type="button" style="--accent:${accent}">
+                <div class="name"><span>${i.name}</span>${q ? `<span class="qty">×${q}</span>` : ''}</div>
+                ${i.desc ? `<div class="desc">${i.desc}</div>` : '<div></div>'}
+                <div class="price">${i.customProduct ? 'precio libre' : money(i.price)}</div>
+              </button>`
+            }).join('')
+          : `<p class="empty">Sin resultados.</p>`
+      }
+
+      function updateChange() {
+        const paid = parseFloat(String($('paid').value).replace(',', '.'))
+        const { total, count } = totals()
+        if (!count || !Number.isFinite(paid)) {
+          $('change').textContent = '—'
+          $('change').style.color = 'var(--ok)'
+          return
+        }
+        const d = paid - total
+        $('change').textContent = money(d)
+        $('change').style.color = d < 0 ? 'var(--danger)' : 'var(--ok)'
+      }
+
+      function renderTicket() {
+        const { ls, total, count, base, iva } = totals()
+        const m = normalizeMesa(state.mesa || $('mesa')?.value)
+        $('btnUndo').disabled = !state.hist.length
+        $('fabCount').textContent = String(count)
+        $('fabTotal').textContent = money(total)
+        if ($('base')) $('base').textContent = money(base)
+        if ($('iva')) $('iva').textContent = money(iva)
+        $('total').textContent = money(total)
+        if ($('fabMesa')) $('fabMesa').textContent = m ? `Mesa ${m}` : ''
+        updateNextCourseBtn()
+        $('lines').innerHTML = ls.length
+          ? ls.map((l) => {
+              const ctype = categoryTypeOf(l)
+              const sent = Number(l.sentQty || 0)
+              const key = l.key || cartKeyFor(l.productId || l.id, l.note)
+              const tags = [
+                ctype === 'bebida'
+                  ? '<span class="tag-drink">barra</span>'
+                  : '<span class="tag-food">cocina</span>',
+                ctype === 'comida' && sent > 0
+                  ? `<span class="tag-sent">enviado ${Math.min(sent, l.qty)}/${l.qty}</span>`
+                  : '',
+              ].join('')
+              const isMenuPick = Boolean(l.coursePick || isSpanishMenu(l) || /Primero N/i.test(String(l.note || '')))
+              const note = l.note
+                ? `<div class="line-note${isMenuPick ? ' menu-pick' : ''}">${String(l.note).replace(/</g, '&lt;')}</div>`
+                : (isMenuPick
+                  ? `<div class="line-note menu-pick">⚠ Falta elegir Primero / Segundo</div>`
+                  : '')
+              const pickBtn = isMenuPick
+                ? `<button type="button" class="btn-pick" data-pick="${key}">Cambiar N1/N2</button>`
+                : ''
+              const editable = isPriceEditable(l)
+              const priceBlock = editable
+                ? `<div class="line-price-edit">
+                    <label>Precio</label>
+                    <input class="line-price" type="text" inputmode="decimal" enterkeyhint="done" data-price-key="${String(key).replace(/"/g, '&quot;')}" value="${formatPriceInput(l.price)}" aria-label="Precio unidad" />
+                    <em>€ / ud.</em>
+                  </div>`
+                : `<div class="line-meta">${money(l.price)} · ud.</div>`
+              return `<div class="line" data-key="${key}">
+              <div>
+                <div class="line-name">${l.name}${tags}</div>
+                ${priceBlock}
+                ${note}
+                ${pickBtn}
+              </div>
+              <div class="line-right">
+                <div class="line-sum">${money(l.price * l.qty)}</div>
+                <div class="q">
+                  <button type="button" data-act="-" data-id="${key}" aria-label="Quitar">−</button>
+                  <span>${l.qty}</span>
+                  <button type="button" data-act="+" data-id="${key}" aria-label="Añadir">+</button>
+                </div>
+              </div>
+            </div>`
+            }).join('')
+          : `<p class="empty">${m ? `Cuenta de la mesa ${m} vacía.` : 'Pon el nº de mesa y toca productos.'}</p>`
+        updateChange()
+      }
+
+      function render() { renderCats(); renderProducts(); renderTicket() }
+      function openTicket() {
+        $('ticket').classList.add('open')
+        $('backdrop').hidden = false
+        document.body.classList.add('check-open')
+        // Lleva los botones a la vista si el panel ya estaba a medias
+        requestAnimationFrame(() => {
+          try { $('ticket')?.querySelector('.check-f')?.scrollIntoView({ block: 'nearest' }) } catch {}
+        })
+      }
+      function closeTicket() {
+        $('ticket').classList.remove('open')
+        $('backdrop').hidden = true
+        document.body.classList.remove('check-open')
+      }
+
+      function tickClock() {
+        const now = new Date()
+        $('clock').textContent = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+      }
+
+      function bindMesa(el) {
+        if (!el) return
+        el.addEventListener('input', () => {
+          const cleaned = el.value.replace(/\D+/g, '').slice(0, 4)
+          if (el.value !== cleaned) el.value = cleaned
+          syncMesaInputs(cleaned)
+        })
+        el.addEventListener('change', () => switchMesa(el.value))
+        el.addEventListener('blur', () => switchMesa(el.value))
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); switchMesa(el.value); el.blur() }
+        })
+      }
+
+      // Teclado virtual Windows: foco en el mismo gesto del toque (sin preventDefault)
+      const EDITABLE_SEL =
+        'input:not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), select:not([disabled])'
+
+      function focusEditable(el) {
+        if (!el || el.disabled || el.readOnly) return
+        try { el.focus({ preventScroll: true }) } catch { try { el.focus() } catch {} }
+      }
+
+      // pointerdown (no up): Edge/Chrome Windows abren el teclado solo en el gesto activo
+      document.addEventListener('pointerdown', (e) => {
+        if (e.button != null && e.button !== 0) return
+        if (e.target.closest('button, a, .cat, .prod, .fab, .btn, .icon-btn, .q, .tender')) return
+        const direct = e.target.closest(EDITABLE_SEL)
+        if (direct) {
+          focusEditable(direct)
+          return
+        }
+        const wrap = e.target.closest('.search, .mesa-chip, .mesa-field, .notes-field, .pay-box')
+        if (!wrap) return
+        const el = wrap.querySelector(EDITABLE_SEL)
+        if (el) focusEditable(el)
+      }, { capture: true, passive: true })
+
+      ;['mesa-field', 'notes-field', 'pay-box', 'search', 'mesa-chip'].forEach((cls) => {
+        document.querySelector(`.${cls}`)?.addEventListener('click', (e) => {
+          if (e.target.closest(EDITABLE_SEL)) return
+          if (e.target.closest('button')) return
+          const el = e.currentTarget.querySelector(EDITABLE_SEL)
+          if (el) focusEditable(el)
+        })
+      })
+
+      /*
+        Scroll táctil TPV = arrastrar con el dedo en carta y cuenta.
+        Solo en layout de caja (≥1024px). En móvil usamos scroll nativo
+        (si no, touch-action:none deja la pantalla trabada).
+        Windows suele mandar el dedo como "mouse": aceptamos todos los punteros.
+      */
+      ;(function setupTpvTouchScroll() {
+        const ZONE = '.menu, .rail, .lines, .check-f, .jornada-card'
+        const SKIP = 'input, textarea, select'
+
+        let scroller = null
+        let active = false
+        let moved = false
+        let startY = 0
+        let startX = 0
+        let originTop = 0
+        let originLeft = 0
+        let pointerId = null
+
+        function isPosLayout() {
+          try { return window.matchMedia('(min-width: 1024px)').matches } catch { return false }
+        }
+
+        function syncTouchScrollMode() {
+          if (isPosLayout()) {
+            document.documentElement.classList.add('tpv-touch-scroll', 'has-touch')
+          } else {
+            document.documentElement.classList.remove('tpv-touch-scroll')
+            // Cancelar gesto a medias al pasar a móvil
+            active = false
+            scroller = null
+            pointerId = null
+            moved = false
+            try { delete document.documentElement.dataset.tpvPanning } catch {}
+          }
+        }
+        syncTouchScrollMode()
+        try {
+          window.matchMedia('(min-width: 1024px)').addEventListener('change', syncTouchScrollMode)
+        } catch {
+          window.addEventListener('resize', syncTouchScrollMode, { passive: true })
+        }
+
+        function pickScroller(target) {
+          if (!target || !target.closest) return null
+          if (target.closest(SKIP)) return null
+          // Si tocas la cuenta, prioriza la zona bajo el dedo
+          const direct = target.closest(ZONE)
+          if (direct) return direct
+          return null
+        }
+
+        function canY(el) { return el && el.scrollHeight > el.clientHeight + 1 }
+        function canX(el) { return el && el.scrollWidth > el.clientWidth + 1 }
+
+        function begin(y, x, id, target) {
+          if (!document.documentElement.classList.contains('tpv-touch-scroll')) return false
+          const el = pickScroller(target)
+          if (!el) return false
+          if (!canY(el) && !canX(el)) return false
+          scroller = el
+          active = true
+          moved = false
+          startY = y
+          startX = x
+          originTop = el.scrollTop
+          originLeft = el.scrollLeft
+          pointerId = id
+          return true
+        }
+
+        function move(y, x, ev) {
+          if (!active || !scroller) return
+          const dy = y - startY
+          const dx = x - startX
+          if (!moved) {
+            if (Math.abs(dy) < 5 && Math.abs(dx) < 5) return
+            moved = true
+            scroller.dataset.didPan = '1'
+            document.documentElement.dataset.tpvPanning = '1'
+            try {
+              if (pointerId != null && ev && ev.target) {
+                ;(scroller).setPointerCapture?.(pointerId)
+              }
+            } catch {}
+          }
+          if (Math.abs(dy) >= Math.abs(dx)) {
+            if (canY(scroller)) {
+              scroller.scrollTop = originTop - dy
+              if (ev && ev.cancelable) ev.preventDefault()
+            }
+          } else if (canX(scroller)) {
+            scroller.scrollLeft = originLeft - dx
+            if (ev && ev.cancelable) ev.preventDefault()
+          }
+        }
+
+        function end() {
+          if (!active) return
+          const el = scroller
+          active = false
+          scroller = null
+          pointerId = null
+          if (moved && el) {
+            el.dataset.didPan = '1'
+            setTimeout(() => {
+              try { delete el.dataset.didPan } catch {}
+              try { delete document.documentElement.dataset.tpvPanning } catch {}
+            }, 120)
+          } else {
+            try { delete document.documentElement.dataset.tpvPanning } catch {}
+          }
+          moved = false
+        }
+
+        // Preferir Pointer Events (cubre dedo/ratón/pen en Windows).
+        // Touch nativo solo si no hay PointerEvent.
+        if (window.PointerEvent) {
+          document.addEventListener('pointerdown', (e) => {
+            if (e.button != null && e.button !== 0) return
+            begin(e.clientY, e.clientX, e.pointerId, e.target)
+          }, { capture: true, passive: true })
+
+          document.addEventListener('pointermove', (e) => {
+            if (!active) return
+            if (pointerId != null && e.pointerId !== pointerId) return
+            move(e.clientY, e.clientX, e)
+          }, { capture: true, passive: false })
+
+          document.addEventListener('pointerup', end, { capture: true, passive: true })
+          document.addEventListener('pointercancel', end, { capture: true, passive: true })
+        } else {
+          document.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) return
+            const t = e.touches[0]
+            begin(t.clientY, t.clientX, t.identifier, e.target)
+          }, { capture: true, passive: true })
+
+          document.addEventListener('touchmove', (e) => {
+            if (!active || e.touches.length !== 1) return
+            const t = e.touches[0]
+            move(t.clientY, t.clientX, e)
+          }, { capture: true, passive: false })
+
+          document.addEventListener('touchend', end, { capture: true, passive: true })
+          document.addEventListener('touchcancel', end, { capture: true, passive: true })
+
+          document.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return
+            begin(e.clientY, e.clientX, 'mouse', e.target)
+          }, { capture: true, passive: true })
+
+          document.addEventListener('mousemove', (e) => {
+            if (!active || pointerId !== 'mouse') return
+            move(e.clientY, e.clientX, e)
+          }, { capture: true, passive: false })
+
+          document.addEventListener('mouseup', () => {
+            if (pointerId === 'mouse') end()
+          }, { capture: true, passive: true })
+        }
+        // Marca zonas para depuración / CSS
+        const mark = () => {
+          document.querySelectorAll(ZONE).forEach((el) => { el.dataset.tpvPan = '1' })
+        }
+        mark()
+        setTimeout(mark, 400)
+      })()
+
+      function bindTap(root, selector, handler) {
+        if (!root) return
+        let lastAt = 0
+        let lastEl = null
+        let gesturing = false
+        let startX = 0
+        let startY = 0
+        const run = (e, el) => {
+          if (root.dataset.didPan === '1' || document.documentElement.dataset.tpvPanning === '1') return
+          const now = Date.now()
+          if (el === lastEl && now - lastAt < 320) return
+          lastEl = el
+          lastAt = now
+          handler(e, el)
+        }
+        root.addEventListener('pointerdown', (e) => {
+          gesturing = false
+          startX = e.clientX
+          startY = e.clientY
+        }, { passive: true })
+        root.addEventListener('pointermove', (e) => {
+          if (Math.abs(e.clientX - startX) > 14 || Math.abs(e.clientY - startY) > 14) gesturing = true
+        }, { passive: true })
+        root.addEventListener('pointercancel', () => { gesturing = true }, { passive: true })
+        root.addEventListener('click', (e) => {
+          if (gesturing || root.dataset.didPan === '1' || document.documentElement.dataset.tpvPanning === '1') {
+            gesturing = false
+            return
+          }
+          const el = e.target.closest(selector)
+          if (!el || !root.contains(el)) return
+          run(e, el)
+        })
+      }
+
+      // Marca táctil real (TPV / tablet) para CSS
+      const markTouch = () => {
+        document.documentElement.classList.add('has-touch')
+        window.removeEventListener('touchstart', markTouch)
+        window.removeEventListener('pointerdown', markTouchPointer)
+      }
+      const markTouchPointer = (e) => {
+        if (e.pointerType === 'touch' || e.pointerType === 'pen') markTouch()
+      }
+      window.addEventListener('touchstart', markTouch, { passive: true, once: true })
+      window.addEventListener('pointerdown', markTouchPointer, { passive: true })
+      try {
+        if (navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches) {
+          document.documentElement.classList.add('has-touch')
+        }
+      } catch {}
+
+      bindTap($('cats'), '[data-cat]', (_e, b) => {
+        state.cat = b.dataset.cat; render()
+      })
+      bindTap($('products'), '.prod', (_e, b) => {
+        if (b.dataset.extra || b.id === 'btnOpenExtra') {
+          openExtraModal()
+          return
+        }
+        const item = all().find((x) => x.id === b.dataset.id); if (item) add(item)
+      })
+      bindTap($('lines'), '[data-pick], button[data-act]', (_e, el) => {
+        if (el.hasAttribute('data-pick')) {
+          const key = el.dataset.pick
+          const line = state.cart[key]
+          if (!line) return
+          const item = all().find((x) => x.id === (line.productId || line.id)) || {
+            id: line.productId || line.id,
+            name: line.name,
+            price: line.price,
+            catId: line.catId,
+            coursePick: true,
+          }
+          openCoursePick(item, key)
+          return
+        }
+        if (!el.matches('button[data-act]')) return
+        const line = state.cart[el.dataset.id]; if (!line) return
+        setQty(el.dataset.id, el.dataset.act === '+' ? line.qty + 1 : line.qty - 1)
+      })
+      $('lines').addEventListener('change', (e) => {
+        const input = e.target.closest?.('input.line-price')
+        if (!input) return
+        setLinePrice(input.dataset.priceKey, input.value)
+      })
+      $('lines').addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return
+        const input = e.target.closest?.('input.line-price')
+        if (!input) return
+        e.preventDefault()
+        input.blur()
+      })
+      // Modal menú español: Primero/Segundo N1|N2
+      $('courseCancel')?.addEventListener('click', () => closeCoursePick())
+      $('courseBack')?.addEventListener('click', () => closeCoursePick())
+      $('courseOk')?.addEventListener('click', () => commitCoursePick())
+      $('courseModal')?.addEventListener('click', (e) => {
+        if (e.target === $('courseModal')) closeCoursePick()
+      })
+      $('extraCancel')?.addEventListener('click', () => closeExtraModal())
+      $('extraBack')?.addEventListener('click', () => closeExtraModal())
+      $('extraOk')?.addEventListener('click', () => commitExtraProduct())
+      $('extraModal')?.addEventListener('click', (e) => {
+        if (e.target === $('extraModal')) closeExtraModal()
+      })
+      $('extraPrice')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commitExtraProduct() }
+      })
+      $('extraName')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); $('extraPrice')?.focus() }
+      })
+      ;['coursePrimero', 'courseSegundo'].forEach((id) => {
+        $(id)?.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-course]')
+          if (!btn) return
+          courseSel[btn.dataset.course] = String(btn.dataset.n)
+          paintCourseModal()
+        })
+      })
+      window.addEventListener('keydown', (e) => {
+        if ($('extraModal')?.hidden === false && e.key === 'Escape') {
+          e.preventDefault(); closeExtraModal(); return
+        }
+        if ($('courseModal')?.hidden === false && e.key === 'Escape') {
+          e.preventDefault(); closeCoursePick(); return
+        }
+        if ($('jornadaModal')?.hidden === false && e.key === 'Escape') {
+          e.preventDefault(); closeJornadaModal(); return
+        }
+        if (document.body.classList.contains('check-open') && e.key === 'Escape') {
+          e.preventDefault(); closeTicket()
+        }
+      })
+      $('paid').addEventListener('input', () => { persist(); updateChange() })
+      bindTap($('tender'), '[data-cash]', (_e, b) => {
+        const { total } = totals()
+        if (b.dataset.cash === 'exact') $('paid').value = String(Math.round(total * 100) / 100)
+        else $('paid').value = b.dataset.cash
+        persist(); updateChange()
+      })
+      bindMesa($('mesa'))
+      bindMesa($('mesaTop'))
+      if ($('notes')) {
+        $('notes').addEventListener('input', () => {
+          state.notes = $('notes').value
+          persist()
+        })
+      }
+      $('btnClear').onclick = clearCart
+      $('btnClear2').onclick = clearCart
+      $('btnKitchen').onclick = sendToKitchen
+      $('btnNextCourse').onclick = sendNextCourse
+      $('btnTicket').onclick = printTicketOnly
+      $('btnDone').onclick = done
+      $('btnUndo').onclick = undo
+      $('fab').onclick = openTicket
+      $('backdrop').onclick = closeTicket
+      $('btnCloseCheck')?.addEventListener('click', closeTicket)
+      $('btnCloseCheckGrab')?.addEventListener('click', closeTicket)
+      $('jornadaBack')?.addEventListener('click', closeJornadaModal)
+      $('search').addEventListener('input', () => {
+        state.q = $('search').value
+        if (state.q.trim() && state.cat !== 'all') {
+          state.cat = 'all'
+          renderCats()
+        }
+        renderProducts()
+      })
+      $('search').addEventListener('focus', () => {
+        if (window.matchMedia('(max-width: 720px)').matches) closeTicket()
+      })
+      $('btnJornadaStart').onclick = startJornada
+      $('btnJornadaEnd').onclick = endJornada
+      $('btnPrintTest')?.addEventListener('click', async () => {
+        const btn = $('btnPrintTest')
+        if (btn) btn.disabled = true
+        try {
+          if (!window.CasaTorinoPrint?.testPrint) {
+            alert('Servicio de impresión no cargado.\nRecarga la página.')
+            return
+          }
+          const name = await window.CasaTorinoPrint.resolvePrinterName?.().catch(() => null)
+          const ok = await window.CasaTorinoPrint.testPrint()
+          if (ok) {
+            alert('Prueba enviada a ' + (name || 'POS-58') + '.\nSi QZ Tray pidió permiso, pulsa Allow / Permitir.')
+          }
+        } finally {
+          if (btn) btn.disabled = false
+        }
+      })
+      $('btnJornadaTotal').onclick = async () => {
+        try {
+          const j = await window.CasaTorinoTpvJornada.refresh()
+          paintJornadaStatus(j)
+        } catch (err) {
+          console.warn(err)
+        }
+        openJornadaModal()
+      }
+      $('btnJornadaClose').onclick = closeJornadaModal
+      $('jornadaModal')?.addEventListener('click', (e) => {
+        if (e.target === $('jornadaModal')) closeJornadaModal()
+      })
+      $('jornadaTickets')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-jact]')
+        if (!btn) return
+        const act = btn.dataset.jact
+        const ticket = btn.closest('.jornada-ticket')
+        const lineBox = btn.closest('.jornada-line-edit')
+        if (act === 'toggle' && ticket) {
+          ticket.classList.toggle('open')
+          return
+        }
+        if (act === 'del-sale' && ticket) {
+          await deleteJornadaSale(ticket.dataset.saleId)
+          return
+        }
+        if (!lineBox) return
+        const saleId = lineBox.dataset.sale
+        const lineId = lineBox.dataset.line
+        const qtyEl = lineBox.querySelector('.qty')
+        const curQty = Number(qtyEl?.textContent || 0)
+        if (act === 'inc') {
+          await applyJornadaLine(saleId, lineId, { qty: curQty + 1 })
+        } else if (act === 'dec') {
+          await applyJornadaLine(saleId, lineId, { qty: Math.max(0, curQty - 1) })
+        } else if (act === 'del-line') {
+          if (!confirm('¿Quitar este producto del ticket?')) return
+          await applyJornadaLine(saleId, lineId, { qty: 0 })
+        }
+      })
+      $('jornadaTickets')?.addEventListener('change', async (e) => {
+        const input = e.target.closest('input.price')
+        if (!input) return
+        const lineBox = input.closest('.jornada-line-edit')
+        if (!lineBox) return
+        const price = parseFloat(String(input.value).replace(',', '.'))
+        if (!Number.isFinite(price) || price < 0) {
+          alert('Precio no válido')
+          return
+        }
+        await applyJornadaLine(lineBox.dataset.sale, lineBox.dataset.line, { price })
+      })
+
+      load(); render(); tickClock()
+      setInterval(tickClock, 30000)
+
+      window.CasaTorinoTpvJornada?.startPolling(
+        (j) => paintJornadaStatus(j),
+        () => lockTpvForPin('Sesión caducada — introduce el PIN'),
+      )
+
+      window.CasaTorinoTpvSync?.start(
+        (remote) => {
+          const prevJson = JSON.stringify(state.tables)
+          const nextJson = JSON.stringify(remote.tables || {})
+          if (prevJson === nextJson) return
+          state.tables = remote.tables || {}
+          const m = normalizeMesa(state.mesa)
+          if (m) loadMesaIntoState(m)
+          sessionStorage.setItem(KEY, JSON.stringify({ mesa: m, tables: state.tables }))
+          render()
+        },
+        () => lockTpvForPin('Sesión caducada — introduce el PIN'),
+      )
+
+      // —— Avisos cocina Listo → recoger mesa (cualquier camarero) ——
+      const activePickups = new Map() // id -> pickup
+      let pickupAlarmTimer = null
+
+      async function playPickupSound() {
+        try { await unlockTpvAudio() } catch {}
+
+        // 1) HTMLAudio (más fiable en Chrome móvil / Android TV)
+        try {
+          const url = buildBeepUrl()
+          if (url) {
+            const playOnce = (delay, vol) => {
+              setTimeout(() => {
+                try {
+                  const a = new Audio(url)
+                  a.volume = vol
+                  a.play().catch(() => {})
+                } catch {}
+              }, delay)
+            }
+            playOnce(0, 1)
+            playOnce(280, 1)
+            playOnce(560, 1)
+          }
+        } catch {}
+
+        // 2) WebAudio (alarma más marcada)
+        try {
+          const Ctx = window.AudioContext || window.webkitAudioContext
+          if (!Ctx) return
+          const ctx = tpvAudioCtx || (tpvAudioCtx = new Ctx())
+          if (ctx.state === 'suspended') {
+            try { await ctx.resume() } catch {}
+          }
+          if (ctx.state !== 'running') return
+
+          const pattern = [
+            { f: 880, dur: 0.16, gap: 0.06, vol: 0.34 },
+            { f: 1175, dur: 0.16, gap: 0.06, vol: 0.36 },
+            { f: 1480, dur: 0.22, gap: 0.12, vol: 0.38 },
+            { f: 880, dur: 0.16, gap: 0.06, vol: 0.34 },
+            { f: 1480, dur: 0.28, gap: 0.0, vol: 0.40 },
+          ]
+          let t = ctx.currentTime + 0.02
+          for (const step of pattern) {
+            const o = ctx.createOscillator()
+            const g = ctx.createGain()
+            o.type = 'square'
+            o.frequency.setValueAtTime(step.f, t)
+            g.gain.setValueAtTime(0.0001, t)
+            g.gain.exponentialRampToValueAtTime(step.vol, t + 0.02)
+            g.gain.exponentialRampToValueAtTime(0.0001, t + step.dur)
+            o.connect(g)
+            g.connect(ctx.destination)
+            o.start(t)
+            o.stop(t + step.dur + 0.02)
+            t += step.dur + step.gap
+          }
+        } catch {}
+
+        try { navigator.vibrate?.([120, 60, 120, 60, 200, 80, 240]) } catch {}
+      }
+
+      function startPickupAlarmLoop() {
+        if (pickupAlarmTimer) return
+        // Repite mientras haya avisos (por si el primero falló o no se oyó)
+        pickupAlarmTimer = setInterval(() => {
+          if (!activePickups.size) {
+            clearInterval(pickupAlarmTimer)
+            pickupAlarmTimer = null
+            return
+          }
+          playPickupSound()
+        }, 3500)
+      }
+
+      function stopPickupAlarmLoop() {
+        if (pickupAlarmTimer) {
+          clearInterval(pickupAlarmTimer)
+          pickupAlarmTimer = null
+        }
+      }
+
+      function renderPickupAlert() {
+        const box = $('pickupAlert')
+        if (!box) return
+        const list = [...activePickups.values()]
+        if (!list.length) {
+          box.classList.remove('show')
+          box.innerHTML = ''
+          stopPickupAlarmLoop()
+          return
+        }
+        box.classList.add('show')
+        box.innerHTML = list
+          .map(
+            (p) => `<div class="pickup-card" data-pickup="${String(p.id).replace(/"/g, '')}" role="button" tabindex="0">
+              <i class="fa-solid fa-bell"></i>
+              <div>
+                <strong>${String(p.message || `Recoger mesa ${p.mesa || '?'}`).replace(/</g, '&lt;')}</strong>
+                <span>Cocina listo · toca para confirmar recogida</span>
+              </div>
+              <button type="button" class="x" data-pickup-x="${String(p.id).replace(/"/g, '')}" aria-label="Cerrar">✕</button>
+            </div>`,
+          )
+          .join('')
+        startPickupAlarmLoop()
+      }
+
+      async function dismissPickup(id) {
+        if (!id) return
+        activePickups.delete(id)
+        renderPickupAlert()
+        try {
+          await window.CasaTorinoKitchenSync?.ackPickup?.(id)
+        } catch (err) {
+          console.warn('ackPickup', err)
+        }
+      }
+
+      $('pickupAlert')?.addEventListener('click', (e) => {
+        unlockTpvAudio()
+        const x = e.target.closest('[data-pickup-x]')
+        const card = e.target.closest('[data-pickup]')
+        const id = (x || card)?.dataset?.pickupX || (x || card)?.dataset?.pickup
+        if (id) dismissPickup(id)
+      })
+
+      window.CasaTorinoKitchenSync?.start(
+        (payload) => {
+          // Sync completo de avisos pendientes (también si otro TPV no los ha ack)
+          const remote = Array.isArray(payload.pickups) ? payload.pickups : []
+          const remoteIds = new Set(remote.map((p) => p && p.id).filter(Boolean))
+          for (const id of [...activePickups.keys()]) {
+            if (!remoteIds.has(id)) activePickups.delete(id)
+          }
+          for (const p of remote) {
+            if (p && p.id && !activePickups.has(p.id)) activePickups.set(p.id, p)
+          }
+          renderPickupAlert()
+        },
+        () => lockTpvForPin('Sesión caducada — introduce el PIN'),
+        (newPickups) => {
+          if (!newPickups?.length) return
+          for (const p of newPickups) {
+            if (p && p.id) activePickups.set(p.id, p)
+          }
+          renderPickupAlert()
+          playPickupSound()
+        },
+      )
+
+      setTimeout(() => {
+        if (!$('mesa').value) {
+          const focusEl = window.matchMedia('(min-width: 1024px)').matches ? $('mesa') : ($('mesaTop') || $('mesa'))
+          focusEl?.focus()
+        }
+      }, 120)
+      }
+    })()
+  </script>
+</body>
+</html>

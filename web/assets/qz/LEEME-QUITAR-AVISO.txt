@@ -1,0 +1,36 @@
+Casa Torino — quitar el aviso "Action Required / Untrusted website"
+==================================================================
+
+IMPORTANTE
+----------
+En QZ Tray, si marcas "Remember this decision" a veces el botón Allow
+se desactiva si el certificado aún no está instalado en el PC.
+Por eso hay que instalar el certificado en la carpeta de QZ Tray.
+
+PASO ÚNICO (PC de la caja, 1 minuto)
+------------------------------------
+1. Descarga y ejecuta COMO ADMINISTRADOR:
+
+   https://casa-torino-web.vercel.app/assets/qz/INSTALAR-CONFIANZA-QZ.bat
+
+   (Clic derecho → "Ejecutar como administrador")
+
+2. Cuando diga LISTO:
+   - Abre el TPV
+   - Pulsa F5 (recargar)
+   - Pulsa "Probar ticket"
+
+3. Si sale UNA vez el aviso:
+   - NO marques Remember todavía si Allow se pone gris
+   - Pulsa Allow
+   - Si vuelve a salir, marca Remember + Allow
+
+Manual (si el .bat no se puede ejecutar)
+----------------------------------------
+1. Descarga: https://casa-torino-web.vercel.app/assets/qz/override.crt
+2. Copia ese archivo a:
+
+   C:\Program Files\QZ Tray\override.crt
+
+3. Cierra QZ Tray (icono cerca del reloj → Exit) y ábrelo otra vez
+4. Recarga el TPV y prueba
