@@ -10,19 +10,18 @@ se migra a:
 
 ## Aplicar la migración (una vez, desde tu PC)
 
-```bash
-# Opción A — si ya existe el release en Proyeccion:
-curl -fsSL https://raw.githubusercontent.com/Sebastian-Tamayo/Proyeccion/cursor/migrar-casatorino-fuera-8823/scripts/aplicar-migracion-casatorino.sh | bash
+Release ya publicado:
+https://github.com/Sebastian-Tamayo/Proyeccion/releases/tag/casatorino-export-2026-10-23
 
-# Opción B — clonando Proyeccion en esta rama:
-git clone https://github.com/Sebastian-Tamayo/Proyeccion.git
-cd Proyeccion
-git checkout cursor/migrar-casatorino-fuera-8823
-bash scripts/aplicar-migracion-casatorino.sh
-# luego: cd /tmp/casatorino-apply-*/dest && git push -u origin HEAD
+```bash
+# Git Bash / WSL (con tu login de GitHub que pueda push a CasaTorinoApp)
+curl -fsSL -o /tmp/aplicar-migracion-casatorino.sh \
+  https://raw.githubusercontent.com/Sebastian-Tamayo/Proyeccion/cursor/migrar-casatorino-fuera-8823/scripts/aplicar-migracion-casatorino.sh
+PUSH=1 bash /tmp/aplicar-migracion-casatorino.sh
 ```
 
-Nada se pierde: el commit de origen es `bd9ca63` en el historial de Proyeccion
-y el release `casatorino-export-2026-10-23` (si está publicado).
+O da a Cursor **Contents: Read and write** en `CasaTorinoApp` y escribe en el chat: `acceso listo`.
+
+Nada se pierde: historial `bd9ca63` en Proyeccion + release `casatorino-export-2026-10-23`.
 
 Este archivo es solo un cartel de separación; no contiene código de Casa Torino.
