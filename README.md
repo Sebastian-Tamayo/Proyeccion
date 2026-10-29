@@ -66,6 +66,8 @@ Enfoque **monorepo**: el orquestador y los artefactos viven juntos para buscar s
 | [`scripts/SAP_740/`](scripts/SAP_740/) | Zero-Touch SAP GUI 7.40 desde USB, PowerShell EDR-safe, unión a dominio parametrizable |
 | [`scripts/IBER/`](scripts/IBER/) | Zero-Touch Altitude uCI / SIPPhone desde USB (InstallShield silencioso + post-config) |
 | [`scripts/grok_email_cleaner/`](scripts/grok_email_cleaner/) | Bot Gmail: vaciar buzón o limpieza selectiva (dry-run por defecto) |
+| [`scripts/Santander Empresas/`](scripts/Santander%20Empresas/) | Citrix + **BCR_Client** (Genesys) + IronChip: de ~40 min reinstalar cliente a **configurar BCR** en minutos — [caso portfolio](docs/casos/SANTANDER-EMPRESAS.md) |
+| [`scripts/Santander Sace/`](scripts/Santander%20Sace/) | Suite legacy bancaria (BanesNet, Supernet, SEPA, SCH) en un `INSTALAR-TODO.bat` — [caso portfolio](docs/casos/SANTANDER-SACE.md) |
 
 Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PROBAR.md).
 
@@ -83,6 +85,8 @@ Guía de prueba USB: [`scripts/SAP_740/COMO-PROBAR.md`](scripts/SAP_740/COMO-PRO
 | `Deploy-SAP740.ps1` EDR-safe | Sin PInvoke/kernel32 ni `cmd` ofuscado; menos falsos positivos SOC |
 | Ejecución desde lápiz USB | Menor lead time de provisión (sin pegar a `C:\Deploy`) |
 | Memoria y docs anonimizados | Repo publicable sin filtrar datos personales/corporativos |
+| Citrix: root cause **BCR** vs reinstalar 40 min | Menor tiempo en puesto; criterio de éxito = plugin verificado |
+| Santander Sace: 6 fases en un launcher | Menos error humano en provisión multi-producto + permisos dominio |
 
 *Cifras de ROI en `memoria.md` son estimaciones de escenario de laboratorio (datos ficticios).*
 
@@ -110,8 +114,11 @@ Proyeccion/
 ├── scripts/
 │   ├── SAP_740/
 │   ├── IBER/
+│   ├── Santander Empresas/
+│   ├── Santander Sace/
 │   └── grok_email_cleaner/
 ├── docs/
+│   └── casos/           # narrativa portfolio (Santander, etc.)
 ├── memoria.md
 ├── requirements.txt
 └── README.md

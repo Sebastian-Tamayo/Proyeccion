@@ -1,0 +1,31 @@
+Santander Empresas - Instalacion (lapiz/USB)
+============================================
+
+Que hace INSTALAR-TODO.bat (admin local)
+----------------------------------------
+1. Copia el paquete a C:\Deploy (desde USB), desbloquea archivos, log en %TEMP%\SantanderEmpresas\
+2. OBLIGATORIO BCR: CitrixWorkspaceApp.exe del lapiz ejecuta hasta 3 veces:
+     /silent ADDLOCAL=BCR_Client /noreboot /forceinstall
+   Comprueba plugin "Browser Content Redirection" en Programas. Sin BCR = exit 1, no IronChip.
+3. Acceso "Citrix Workspace.lnk" en escritorio publico y usuarios
+4. IronChip (MSI manual al final, solo si BCR OK)
+
+No importa certificados (carpetas 1 y 3). No es Santander Sace (BanesNet/Supernet/SEPA).
+
+Contenido minimo en el lapiz
+----------------------------
+  INSTALAR-TODO.bat, DESINSTALAR-TODO.bat
+  Instalar-SantanderEmpresas.ps1, Desinstalar-Todo-SantanderEmpresas.ps1
+  LEEME-INSTALACION.txt, LEEME-DESINSTALACION.txt
+  2.- Citrix nuevo Santander GO y Genesys Cloud\CitrixWorkspaceApp.exe + README.txt
+  4-Ironchip\IronchipWindowsLogon.msi
+
+Opciones INSTALAR-TODO.bat
+--------------------------
+  (sin argumentos)     BCR + acceso + IronChip
+  solo-citrix          BCR + acceso (sin IronChip)
+  solo-acceso-citrix   solo recrear acceso Citrix en escritorio
+
+Quitar todo: DESINSTALAR-TODO.bat (ver LEEME-DESINSTALACION.txt)
+
+Prueba: Santander GO + URL Media Helper con extension BCR en el navegador.

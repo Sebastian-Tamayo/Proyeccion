@@ -1,0 +1,49 @@
+Santander Sace - Instalar en un PC (dominio) desde cero
+======================================================
+
+QUIEN: solo soporte con ADMINISTRADOR LOCAL (tu usuario).
+       Las agentes NO ejecutan nada del USB.
+
+ANTES: equipo limpio (sin C:\BANESNET8, sin Supernet, sin SEPAtools).
+
+PASOS (en orden)
+----------------
+1. Conectar USB con carpeta "Santander Sace".
+
+2. Clic derecho en INSTALAR-TODO.bat -> Ejecutar como administrador.
+   (Copia a C:\Deploy\Santander Sace e instala desde ahi.)
+
+3. PASO 1/6 BanesNet: asistente BANESNET.EXE
+   - Destino: C:\BANESNET8
+   - En DLL/fuentes: OMITIR si pide
+   - Aceptar al final (reinicio recomendado al terminar TODO)
+
+4. PASO 2/6 Modulos: si abre BAN32INS, instale TODOS los parches .RTP -> Salir
+
+5. PASOS 3-5 Supernet / SEPA / SCH: silencioso o ventana manual si sale
+   - Supernet: desmarque "Reiniciar Windows" si aparece
+
+6. PASO 6/6 Accesos al escritorio publico + permisos dominio (automatico)
+
+7. Cuando el .bat diga codigo 0, se borra solo C:\Deploy (copia temporal).
+   Si avisa que no pudo borrar: cierre la ventana negra, abra CMD y: rmdir /s /q C:\Deploy
+   (antes el .bat quedaba dentro de C:\Deploy y Windows no dejaba borrarla; ya se corrige).
+   REINICIE el PC.
+
+   Log de la instalacion: %TEMP%\SantanderSace\ (no se borra con Deploy)
+
+8. PRUEBA agente:
+   - Iniciar sesion con usuario de DOMINIO (sin ser admin)
+   - Abrir un programa desde iconos del ESCRITORIO (todos los usuarios)
+     NO desde el USB, NO desde C:\Deploy
+   - Ejemplo: Transferencias, Domiciliaciones, etc.
+
+SI LA AGENTE VE "bloqueado por el administrador" AL ABRIR UN PROGRAMA:
+   - Anote el .exe (Propiedades del acceso directo -> Destino)
+   - Soporte ejecuta otra vez: INSTALAR-TODO.bat permisos (como admin)
+   - Si sigue igual: IT dominio debe permitir C:\BANESNET8\BIN\*.exe en AppLocker
+
+DESINSTALAR (solo admin, desde USB): DESINSTALAR-TODO.bat
+  (silencioso con tiempo maximo; no deberia quedarse colgado)
+
+Log instalacion (USB lento): %TEMP%\SantanderSace\Instalar-Todo_YYYYMMDD.log

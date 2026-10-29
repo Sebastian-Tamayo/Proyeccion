@@ -1,0 +1,8 @@
+DATOS PARA SCCM:HKLM\SOFTWARE\PAQUETES\SEPA_Tools Version 02.00
+User validated needed:NO
+Permissions:SYSTEM
+Run installation collection with permissions:SYSTEM
+Run uninstallation collection with permissions:SYSTEM
+INTERACTION WITH USER'S DESKTOP NEEDED:NO
+If some message must be shown to the user:NO
+User's desktop interaction:No

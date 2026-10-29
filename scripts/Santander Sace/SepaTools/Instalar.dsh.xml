@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DATSOF>
+  <APLI>
+    <NOMBRE>SEPA_Tools</NOMBRE>
+    <DESC>Hermesti_SEPA_Tools_4.1.7.0_WOW_70_Vi02.00_Sp</DESC>
+    <VERAPLI>02.00</VERAPLI>
+    <VERDIS>4.1.7.0</VERDIS>
+    <BITS_APPL>32/64</BITS_APPL>
+    <IPL>NO</IPL>
+    <TIPOINS>AR</TIPOINS>
+    <PROCINS>INSTALAR.VBS</PROCINS>
+    <LOGFILE>C:\LOGS\SEPA_Tools.log</LOGFILE>
+  </APLI>
+</DATSOF>

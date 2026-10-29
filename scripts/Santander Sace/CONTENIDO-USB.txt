@@ -1,0 +1,9 @@
+Copiar al USB junto a este repo (no van en Git):
+
+  BANESNET\          (setup / BANESNET.EXE)
+  SepaTools\         (incluido en repo; faltan DLLs del paquete banco si aplica)
+  SUITE SANTANDER MODULOS para Basnet\
+  accesos directos copiar en escritorio publico\
+  (opcional) SCH generador
+
+En Git: Instalar-Todo-SantanderSace.ps1, .bat, LEEME, SepaTools\VBS/XML.

@@ -1,0 +1,6 @@
+Copiar al USB (no van en Git por tamano/licencia):
+
+  2.- Citrix nuevo Santander GO y Genesys Cloud\CitrixWorkspaceApp.exe
+  4-Ironchip\IronchipWindowsLogon.msi
+
+En Git: scripts .ps1 / .bat / LEEME y README del banco en carpeta 2.

@@ -1,0 +1,29 @@
+Santander Sace - Instalacion automatica
+=======================================
+
+Requisito: en esta misma carpeta deben estar BANESNET, SepaTools,
+SUITE SANTANDER MODULOS para Basnet, accesos directos... y (opcional) SCH generador.
+
+Ejecutar: INSTALAR-TODO.bat (como administrador local).
+Desde USB: el .bat copia solo a C:\Deploy\Santander Sace e instala desde ahi.
+Al final deja permisos para usuarios de dominio (sin admin). Agentes: LEEME-AGENTES.txt
+
+Pasos del script (Instalar-Todo-SantanderSace.ps1):
+  1/6 BanesNet base (asistente BANESNET.EXE -> C:\BANESNET8)
+  2/6 Modulos .RTP + BAN32INS
+  3/6 Supernet (*Light.exe + SCH.mdb)
+  4/6 SEPA Tools (Instalar.vbs)
+  5/6 Generador SCH
+  6/6 Accesos directos (.lnk) a la raiz del escritorio publico
+      (desde accesos directos...\BanesNet 8 y ...\Supernet..., sin copiar carpetas)
+
+Si BanesNet no abre desde el acceso: C:\BANESNET8\BIN debe tener BAN32_*.exe (pasos 1/6 y 2/6).
+Solo recopiar accesos: INSTALAR-TODO.bat con modulos ya instalados, o PowerShell:
+  Instalar-Todo-SantanderSace.ps1 -OmitirBanesNet -OmitirSupernet -OmitirSepaTools -OmitirSchGenerador
+
+Politica: silencioso primero; si falla, se abre ventana MANUAL (BAN32INS, Supernet *Light, SEPA, SCH).
+BanesNet base (paso 1) siempre es asistente manual; en DLL/fuentes use Omitir.
+Supernet: desmarque Reiniciar Windows si aparece al final de un modulo.
+Log: Logs\Instalar-Todo_YYYYMMDD.log
+
+Desinstalar: DESINSTALAR-TODO.bat (admin).

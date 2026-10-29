@@ -1,0 +1,9 @@
+Santander Sace - Desinstalacion
+===============================
+
+Ejecute DESINSTALAR-TODO.bat como administrador.
+
+Quita BanesNet, Supernet, SEPA Tools, TODOS los accesos .lnk del paquete
+(en la raiz del escritorio publico y en carpetas BanesNet 8 / Supernet si quedaron),
+mas C:\LOGS, C:\SAN\PAQUETES y C:\Temp\BanesNetSetup.
+No borra esta carpeta ni el paquete del USB.

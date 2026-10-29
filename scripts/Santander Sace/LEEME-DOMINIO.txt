@@ -1,0 +1,18 @@
+PC UNIDO A DOMINIO - Santander Sace
+===================================
+
+QUIEN INSTALA (admin local / soporte):
+  USB o carpeta local -> INSTALAR-TODO.bat (admin)
+  (copia automatica a C:\Deploy si no esta ya ahi + permisos dominio)
+
+AGENTES (usuario de dominio, NO administradores):
+  - NO ejecutar INSTALAR ni DESINSTALAR (ver LEEME-AGENTES.txt)
+  - Usar accesos del escritorio publico
+  - Si acceso denegado al abrir programas: soporte ejecuta
+    INSTALAR-TODO.bat permisos   (solo permisos, admin)
+
+Que hace el instalador al final:
+  - Permisos en C:\BANESNET8, Supernet, SEPAtools, C:\LOGS, C:\SAN
+    para usuarios autenticados (dominio) sin ser admin local
+
+Desinstalar (solo admin): DESINSTALAR-TODO.bat

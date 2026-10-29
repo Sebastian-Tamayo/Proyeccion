@@ -1,0 +1,13 @@
+Usuario de oficina (dominio) - NO es administrador del PC
+=======================================================
+
+NO ejecute INSTALAR-TODO.bat ni DESINSTALAR-TODO.bat (ni abra el USB para instalar).
+Eso solo lo hace soporte con administrador local.
+
+USE los programas desde los iconos del ESCRITORIO PUBLICO
+(los ve todos los usuarios al iniciar sesion).
+
+Si aparece "El administrador del sistema bloqueo esta aplicacion":
+  1) Confirme que abre un acceso del ESCRITORIO, no un .bat/.exe del USB.
+  2) Avise a soporte: debe ejecutar INSTALAR-TODO.bat permisos (como admin)
+     o reinstalar con INSTALAR-TODO.bat desde el USB.

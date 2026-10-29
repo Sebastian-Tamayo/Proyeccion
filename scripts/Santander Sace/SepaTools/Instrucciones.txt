@@ -1,0 +1,39 @@
+Para instalar copiar el software a c:\temp
+
+Desde una consola CMD abierta como administrador ejecutar :
+
+Cd\
+
+Cd temp
+
+Cd Hermesti_SEPA_Tools_4.1.7.0_WOW_70_Vi02.00_Sp
+
+Cscript instalar.vbs.
+
+ 
+
+Procedimiento manual
+
+Desde una consola CMD abierta como administrador ejecutar :
+
+Cd\
+
+Cd temp
+
+Cd Hermesti_SEPA_Tools_4.1.7.0_WOW_70_Vi02.00_Sp
+
+Cd prog
+
+InstalarSEPAtools.exe
+
+ 
+
+En todo momento dar aceptar.
+
+Una vez terminado dar permisos lectura/escritura a:
+
+C:\program files\SEPAtools (si la maquina es 32 bit)
+
+C:\program files (x86)\SEPAtools (si la maquina es 64 bit)
+
+ 

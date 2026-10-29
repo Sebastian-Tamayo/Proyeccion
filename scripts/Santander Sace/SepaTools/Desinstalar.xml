@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DATSOF>
+  <APLI>
+    <NOMBRE>SEPA_Tools_DESINST</NOMBRE>
+    <DESC>DESINST_Hermesti_SEPA_Tools_4.1.7.0_32/64_70__Vi02.00_Sp</DESC>
+    <VERAPLI>02.00</VERAPLI>
+    <VERDIS>4.1.7.0</VERDIS>
+    <APP_UNINST>SEPA_Tools</APP_UNINST>
+    <BITS_APPL>32/64</BITS_APPL>
+    <IPL>NO</IPL>
+    <TIPOINS></TIPOINS>
+    <PROCINS>INSTALAR.VBS</PROCINS>
+    <LOGFILE>C:\LOGS\SEPA_Tools.log</LOGFILE>
+  </APLI>
+</DATSOF>

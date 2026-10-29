@@ -24,3 +24,29 @@ output/grok_email_cleaner.json
 
 # Local Netlify folder
 .netlify
+
+# Santander field kits — solo automatizacion en Git (sin payloads, PKI ni PII)
+scripts/Santander Empresas/**/1.-*/
+scripts/Santander Empresas/**/3.-*/
+scripts/Santander Empresas/**/4-Ironchip/
+scripts/Santander Empresas/**/*.exe
+scripts/Santander Empresas/**/*.msi
+scripts/Santander Empresas/**/*.crt
+scripts/Santander Empresas/**/*.cer
+scripts/Santander Empresas/**/*.p7b
+scripts/Santander Empresas/**/*.pdf
+scripts/Santander Empresas/**/*.pptx
+scripts/Santander Empresas/**/*.ppt
+scripts/Santander Empresas/**/Logs/
+scripts/Santander Sace/Logs/
+scripts/Santander Sace/BANESNET/
+scripts/Santander Sace/SCH*/
+scripts/Santander Sace/accesos*/
+scripts/Santander Sace/SUITE*/
+scripts/Santander Sace/**/*.exe
+scripts/Santander Sace/**/*.dll
+scripts/Santander Sace/**/*.RTP
+scripts/Santander Sace/**/*.mdb
+scripts/Santander Sace/**/*.zip
+scripts/Santander Sace/**/*.pdb
+scripts/Santander Sace/**/*.lnk

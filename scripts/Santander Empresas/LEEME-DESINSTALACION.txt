@@ -1,0 +1,11 @@
+Santander Empresas - Desinstalar todo
+=====================================
+
+DESINSTALAR-TODO.bat (admin local)
+
+Quita IronChip, Citrix Workspace (completo), accesos en escritorio, C:\Deploy.
+No borra la carpeta del lapiz.
+
+Despues: INSTALAR-TODO.bat para volver a dejar BCR + acceso + IronChip.
+
+Log: %TEMP%\SantanderEmpresas\Desinstalar-Todo_YYYYMMDD.log

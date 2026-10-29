@@ -1,0 +1,9 @@
+Copie del USB del banco junto a los .bat (misma carpeta):
+
+  BANESNET\
+  SepaTools\
+  SUITE SANTANDER MODULOS para Basnet\
+  accesos directos copiar en escritorio publico\
+  SCH generador de ficheros\   (opcional)
+
+Git solo incluye scripts; los instaladores no van al repositorio.
