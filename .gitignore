@@ -25,6 +25,13 @@ output/grok_email_cleaner.json
 # Local Netlify folder
 .netlify
 
+# Documentacion de sitio / telemetria real (NO subir a GitHub)
+docs/Documentacion Agente/
+inbox/resumen_diario.md
+output/ultima_ejecucion.md
+# memoria con datos de sitio: editar anonimizado antes de commit; si dudas, no subir
+# memoria.md  (descomenta la linea anterior solo si quieres ignorarla siempre)
+
 # Santander field kits — solo automatizacion en Git (sin payloads, PKI ni PII)
 scripts/Santander Empresas/**/1.-*/
 scripts/Santander Empresas/**/3.-*/

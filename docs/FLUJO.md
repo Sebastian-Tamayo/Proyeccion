@@ -1,5 +1,7 @@
 # Flujo: Gemini → 3 agentes Claude
 
+**Guía completa (adjuntar archivos, plantilla, checklist):** [`COMO-GENERAR-INFORME-AGENTES.md`](COMO-GENERAR-INFORME-AGENTES.md)
+
 1. Trabaja el día en **Gemini** (libreta diaria) y pide un resumen.
 2. Pega ese resumen en [`inbox/resumen_diario.md`](../inbox/resumen_diario.md).
 3. Lanza: `python main.py` (desde la raíz del repo).

@@ -46,7 +46,7 @@ GROK_MODEL=grok-4.3
 3. Ejecuta: `python main.py`
 4. Revisa `output/ultima_ejecucion.md` y consolida en `memoria.md` si aporta.
 
-Detalle: [`docs/FLUJO.md`](docs/FLUJO.md).
+Detalle: [`docs/FLUJO.md`](docs/FLUJO.md) · Informes: [`docs/COMO-GENERAR-INFORME-AGENTES.md`](docs/COMO-GENERAR-INFORME-AGENTES.md) · **Local vs GitHub:** [`docs/LOCAL-VS-GITHUB.md`](docs/LOCAL-VS-GITHUB.md)
 
 ## Agentes
 
